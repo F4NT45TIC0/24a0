@@ -1,0 +1,424 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-darker: #08090c;
+  --bg-dark: #0f1115;
+  --bg-card: rgba(22, 26, 34, 0.75);
+  --border-glow: rgba(255, 255, 255, 0.07);
+  
+  /* Neon Accents */
+  --f1-red: #ff1801;
+  --f1-red-glow: rgba(255, 24, 1, 0.25);
+  --green-neon: #00ff87;
+  --blue-neon: #00e5ff;
+  --yellow-neon: #ffca00;
+  
+  /* Tier Colors */
+  --tier-legendary: #d4af37; /* Gold */
+  --tier-gold: #ffca00;
+  --tier-silver: #a0aab2;
+  --tier-bronze: #cd7f32;
+  
+  /* Fonts */
+  --font-main: 'Outfit', sans-serif;
+  --font-numeric: 'Orbitron', monospace;
+  
+  /* Spacing & Transitions */
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --border-radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-darker);
+  background-image: 
+    radial-gradient(at 10% 20%, rgba(255, 24, 1, 0.04) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(0, 229, 255, 0.03) 0px, transparent 50%);
+  color: #f1f3f5;
+  font-family: var(--font-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+::-webkit-scrollbar-thumb {
+  background: #252a34;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--f1-red);
+}
+
+/* Custom Scrollbar for inner components */
+.custom-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #252a34 var(--bg-darker);
+}
+
+/* Utility Layouts */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  width: 100%;
+}
+
+.text-numeric {
+  font-family: var(--font-numeric);
+}
+
+/* Glassmorphism Panel */
+.panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: var(--transition-smooth);
+}
+
+.panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Title Glow Effect */
+.glow-text {
+  text-shadow: 0 0 10px rgba(255, 24, 1, 0.5);
+  font-family: var(--font-numeric);
+  letter-spacing: 2px;
+}
+
+/* Neon buttons */
+.btn {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-main);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background: var(--f1-red);
+  border-color: var(--f1-red);
+  box-shadow: 0 0 15px var(--f1-red-glow);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #ff3c28;
+  box-shadow: 0 0 25px rgba(255, 24, 1, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--f1-red);
+  color: var(--f1-red);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--f1-red);
+  color: #fff;
+  box-shadow: 0 0 15px var(--f1-red-glow);
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Cards & Draft System */
+.draft-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(20, 24, 33, 0.9) 0%, rgba(10, 12, 16, 0.95) 100%);
+  border-radius: 14px;
+  padding: 1.25rem;
+  border: 2px solid #202632;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  overflow: hidden;
+  transition: var(--transition-smooth);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 320px;
+}
+
+.draft-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: var(--f1-red);
+  opacity: 0.8;
+}
+
+.draft-card.tier-legendary {
+  border-color: var(--tier-legendary);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+.draft-card.tier-legendary::before {
+  background: var(--tier-legendary);
+}
+
+.draft-card.tier-ouro {
+  border-color: var(--tier-gold);
+  box-shadow: 0 0 15px rgba(255, 202, 0, 0.15);
+}
+.draft-card.tier-ouro::before {
+  background: var(--tier-gold);
+}
+
+.draft-card.tier-prata {
+  border-color: var(--tier-silver);
+}
+.draft-card.tier-prata::before {
+  background: var(--tier-silver);
+}
+
+.draft-card.tier-bronze {
+  border-color: var(--tier-bronze);
+}
+.draft-card.tier-bronze::before {
+  background: var(--tier-bronze);
+}
+
+.draft-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+}
+
+.draft-card.selected {
+  border-color: var(--green-neon);
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.3);
+}
+
+/* Card Attributes */
+.attr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.attr-bar-container {
+  width: 60%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.attr-bar {
+  height: 100%;
+  background: var(--f1-red);
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
+}
+
+.attr-bar.good {
+  background: var(--green-neon);
+}
+.attr-bar.average {
+  background: var(--yellow-neon);
+}
+.attr-bar.bad {
+  background: var(--f1-red);
+}
+
+/* Sinergy Badges */
+.synergy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(0, 255, 135, 0.1);
+  color: var(--green-neon);
+  border: 1px solid rgba(0, 255, 135, 0.2);
+}
+
+/* Lights Animation (F1 Start) */
+.lights-container {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.light-post {
+  display: flex;
+  flex-direction: column;
+  background: #111;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 2px solid #333;
+}
+
+.light-bulb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #222;
+  margin: 0.25rem;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+  transition: all 0.1s ease;
+}
+
+.light-bulb.red-on {
+  background: #ff1801;
+  box-shadow: 0 0 15px #ff1801, inset 0 0 2px #fff;
+}
+
+.light-bulb.green-on {
+  background: #00ff87;
+  box-shadow: 0 0 15px #00ff87, inset 0 0 2px #fff;
+}
+
+/* Progress Grid / Track map */
+.race-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  background: linear-gradient(to right, #1a1e26, #0c0e12);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.car-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #000;
+  background: #fff;
+  border: 2px solid var(--f1-red);
+  box-shadow: 0 0 8px rgba(255, 24, 1, 0.4);
+  transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 2;
+}
+
+.car-indicator.player {
+  background: var(--green-neon);
+  border-color: #000;
+  color: #000;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.6);
+  z-index: 10;
+}
+
+/* Grid Layouts */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Animation utilities */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse-effect {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.flash-effect {
+  animation: flash 1s infinite;
+}
+
+/* Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: var(--bg-dark);
+  border: 2px solid #202632;
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
