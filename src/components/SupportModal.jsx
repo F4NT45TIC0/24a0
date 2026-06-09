@@ -41,7 +41,7 @@ export default function SupportModal({ isOpen, onClose }) {
             display: 'block',
             marginBottom: '0.5rem'
           }}>
-            Chave PIX (E-mail)
+            Chave Aleatória PIX
           </span>
           
           <div style={{ 
@@ -65,9 +65,6 @@ export default function SupportModal({ isOpen, onClose }) {
               {copied ? 'Copiado!' : 'Copiar'}
             </button>
           </div>
-          <span style={{ fontSize: '0.7rem', color: '#8a92a6', display: 'block', marginTop: '0.5rem' }}>
-            *Substitua esta chave no código por sua chave PIX real no arquivo src/components/SupportModal.jsx
-          </span>
         </div>
 
         <button className="btn btn-secondary" onClick={onClose} style={{ width: '100%' }}>
