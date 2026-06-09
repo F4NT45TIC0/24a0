@@ -26,9 +26,9 @@ export default function SeasonSummary({
     
     history.forEach(race => {
       const winner = race.results[0];
-      if (winner.driverId === 'player_d1') p1Wins++;
-      if (winner.driverId === 'player_d2') p2Wins++;
-      if (winner.driverId === 'player_d1' || winner.driverId === 'player_d2') teamWins++;
+      if (winner.id === 'player_d1') p1Wins++;
+      if (winner.id === 'player_d2') p2Wins++;
+      if (winner.id === 'player_d1' || winner.id === 'player_d2') teamWins++;
     });
 
     return { p1Wins, p2Wins, teamWins };
@@ -207,7 +207,7 @@ export default function SeasonSummary({
                           <div style={{ fontSize: '0.8rem', textAlign: 'right' }}>
                             <span style={{ color: '#8a92a6' }}>Vencedor: </span>
                             <strong style={{ 
-                              color: result.results[0].driverId.startsWith('player') ? 'var(--green-neon)' : '#fff' 
+                              color: result.results[0].id.startsWith('player') ? 'var(--green-neon)' : '#fff' 
                             }}>
                               {result.results[0].name}
                             </strong>
