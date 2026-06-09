@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 export default function SupportModal({ isOpen, onClose }) {
   const [copied, setCopied] = useState(false);
-  const pixKey = "seu-pix-aqui@email.com"; // User will replace this with their actual PIX key
+  const pixKey = "363df8c5-402e-400d-aac3-138f23ee58d3"; // Chave aleatória do usuário
 
   if (!isOpen) return null;
 
