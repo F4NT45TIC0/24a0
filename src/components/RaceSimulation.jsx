@@ -94,11 +94,11 @@ export default function RaceSimulation({
             setTimeout(() => {
               setPhase('qualifying');
               runQualifying();
-            }, 1000);
+            }, 400); // Fast transition after all lights are lit
             return prev;
           }
         });
-      }, 600);
+      }, 300); // Speed up lights to 300ms
       return () => clearInterval(interval);
     }
   }, [phase]);

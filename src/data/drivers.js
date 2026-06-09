@@ -372,5 +372,170 @@ export const drivers = [
     tier: "Bronze",
     historicalTeams: ["Jordan", "Tyrrell", "Ligier", "Alfa Romeo", "McLaren"],
     description: "Apelidado de 'Andrea de Crasheris' pela quantidade monumental de acidentes."
+  },
+  {
+    id: "hakkinen",
+    name: "Mika Häkkinen",
+    nationality: "Finlândia",
+    rating: 94,
+    attributes: { speed: 95, rain: 90, racecraft: 94, experience: 92 },
+    era: "Transição (90s)",
+    tier: "Ouro",
+    historicalTeams: ["McLaren", "Lotus"],
+    description: "O rival favorito de Schumacher. O finlandês voador conhecido por sua velocidade pura e poucas palavras."
+  },
+  {
+    id: "g_villeneuve",
+    name: "Gilles Villeneuve",
+    nationality: "Canadá",
+    rating: 96,
+    attributes: { speed: 97, rain: 96, racecraft: 90, experience: 60 },
+    era: "Clássica (70-80s)",
+    tier: "Lendário",
+    historicalTeams: ["Ferrari", "McLaren"],
+    description: "Agressividade pura e controle de carro lendário. Pilotava sempre no limite absoluto do perigo."
+  },
+  {
+    id: "clark",
+    name: "Jim Clark",
+    nationality: "Reino Unido",
+    rating: 98,
+    attributes: { speed: 99, rain: 97, racecraft: 98, experience: 75 },
+    era: "Clássica (60s)",
+    tier: "Lendário",
+    historicalTeams: ["Lotus"],
+    description: "Um dos maiores gênios da história. Guiava com suavidade incomparável em carros perigosíssimos."
+  },
+  {
+    id: "fangio",
+    name: "Juan Manuel Fangio",
+    nationality: "Argentina",
+    rating: 99,
+    attributes: { speed: 98, rain: 92, racecraft: 99, experience: 99 },
+    era: "Clássica (50s)",
+    tier: "Lendário",
+    historicalTeams: ["Ferrari", "Alfa Romeo", "Maserati", "Mercedes"],
+    description: "O Maestro. Cinco títulos por quatro equipes diferentes. O maior dos pioneiros."
+  },
+  {
+    id: "j_villeneuve",
+    name: "Jacques Villeneuve",
+    nationality: "Canadá",
+    rating: 89,
+    attributes: { speed: 89, rain: 80, racecraft: 88, experience: 88 },
+    era: "Transição (96-06s)",
+    tier: "Ouro",
+    historicalTeams: ["Williams", "BAR", "Sauber"],
+    description: "Campeão rebelde de 1997 com cabelos coloridos e estilo destemido de combate contra Schumacher."
+  },
+  {
+    id: "d_hill",
+    name: "Damon Hill",
+    nationality: "Reino Unido",
+    rating: 89,
+    attributes: { speed: 88, rain: 85, racecraft: 88, experience: 90 },
+    era: "Transição (90s)",
+    tier: "Ouro",
+    historicalTeams: ["Williams", "Jordan", "Arrows"],
+    description: "Filho do lendário Graham Hill. Conquistou o título de 1996 após batalhas intensas."
+  },
+  {
+    id: "g_hill",
+    name: "Graham Hill",
+    nationality: "Reino Unido",
+    rating: 93,
+    attributes: { speed: 92, rain: 88, racecraft: 92, experience: 98 },
+    era: "Clássica (60-70s)",
+    tier: "Lendário",
+    historicalTeams: ["Lotus", "Brabham"],
+    description: "O único detentor da Tríplice Coroa do automobilismo (F1, Indy 500 e Le Mans)."
+  },
+  {
+    id: "alesi",
+    name: "Jean Alesi",
+    nationality: "França",
+    rating: 85,
+    attributes: { speed: 86, rain: 92, racecraft: 84, experience: 90 },
+    era: "Transição (89-01s)",
+    tier: "Prata",
+    historicalTeams: ["Ferrari", "Benetton", "Sauber"],
+    description: "Coração enorme, estilo agressivo e rei das pistas molhadas, mas com azar monumental."
+  },
+  {
+    id: "fisichella",
+    name: "Giancarlo Fisichella",
+    nationality: "Itália",
+    rating: 83,
+    attributes: { speed: 83, rain: 86, racecraft: 82, experience: 94 },
+    era: "Transição (96-09s)",
+    tier: "Prata",
+    historicalTeams: ["Renault", "Jordan", "Benetton", "Force India", "Ferrari"],
+    description: "Piloto muito técnico e confiável, conquistou vitórias marcantes sob chuva torrencial."
+  },
+  {
+    id: "kovalainen",
+    name: "Heikki Kovalainen",
+    nationality: "Finlândia",
+    rating: 77,
+    attributes: { speed: 78, rain: 76, racecraft: 76, experience: 80 },
+    era: "Moderna (07-13s)",
+    tier: "Bronze",
+    historicalTeams: ["McLaren", "Renault", "Lotus"],
+    description: "Venceu GP pela McLaren, mas teve dificuldade de acompanhar Hamilton como parceiro."
+  },
+  {
+    id: "jos_verstappen",
+    name: "Jos Verstappen",
+    nationality: "Países Baixos",
+    rating: 76,
+    attributes: { speed: 77, rain: 84, racecraft: 74, experience: 78 },
+    era: "Transição (94-03s)",
+    tier: "Bronze",
+    historicalTeams: ["Benetton", "Arrows", "Minardi"],
+    description: "Pai de Max Verstappen. Rápido na chuva, mas famoso por suas escapadas e incidentes no pit."
+  },
+  {
+    id: "mick_schumacher",
+    name: "Mick Schumacher",
+    nationality: "Alemanha",
+    rating: 75,
+    attributes: { speed: 75, rain: 76, racecraft: 74, experience: 50 },
+    era: "Moderna (21-22s)",
+    tier: "Bronze",
+    historicalTeams: ["Haas"],
+    description: "Filho do heptacampeão Michael. Sofreu com a pressão e com acidentes caros na Haas."
+  },
+  {
+    id: "sargeant_drv",
+    name: "Logan Sargeant",
+    nationality: "EUA",
+    rating: 58,
+    attributes: { speed: 58, rain: 55, racecraft: 50, experience: 40 },
+    era: "Moderna (23-24s)",
+    tier: "Bronze",
+    historicalTeams: ["Williams"],
+    description: "O piloto americano conhecido por suas saídas de pista e batidas constantes."
+  },
+  {
+    id: "merhi",
+    name: "Roberto Merhi",
+    nationality: "Espanha",
+    rating: 60,
+    attributes: { speed: 60, rain: 65, racecraft: 58, experience: 35 },
+    era: "Moderna (2015)",
+    tier: "Bronze",
+    historicalTeams: ["Manor"],
+    description: "Correu na pior época da Manor Marussia, lutando bravamente no fundo do grid."
+  },
+  {
+    id: "karthikeyan",
+    name: "Narain Karthikeyan",
+    nationality: "Índia",
+    rating: 55,
+    attributes: { speed: 55, rain: 60, racecraft: 52, experience: 55 },
+    era: "Moderna (05-12s)",
+    tier: "Bronze",
+    historicalTeams: ["Jordan", "HRT"],
+    description: "O primeiro piloto indiano da F1. Andava nas posições finais com equipes de baixíssimo orçamento."
   }
 ];
