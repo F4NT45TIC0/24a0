@@ -28,11 +28,21 @@ export default function App() {
   });
   const videoRef = useRef(null);
   const audioRef = useRef(null);
+  const [volume, setVolume] = useState(() => {
+    const saved = localStorage.getItem('bg_volume');
+    return saved !== null ? parseFloat(saved) : 0.3;
+  });
 
-  // Play background audio continuously at 30% volume
+  const handleVolumeChange = (e) => {
+    const val = parseFloat(e.target.value);
+    setVolume(val);
+    localStorage.setItem('bg_volume', val.toString());
+  };
+
+  // Play background audio continuously at target volume
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = 0.3;
+      audioRef.current.volume = volume;
       
       const playAudio = () => {
         if (audioRef.current) {
@@ -53,6 +63,13 @@ export default function App() {
       });
     }
   }, []);
+
+  // Sync audio element volume reactively
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   // Resilient video autoplay check (muted to ensure success)
   useEffect(() => {
@@ -581,6 +598,48 @@ export default function App() {
               {theme === 'light' ? t.themeToggleDark : t.themeToggleLight}
             </span>
           </button>
+
+          {/* Volume Control */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            background: 'transparent', 
+            padding: '0.4rem 0.75rem', 
+            fontSize: '0.75rem', 
+            border: '1px solid var(--border-color-default)', 
+            borderRadius: 'var(--border-radius)',
+            transform: 'skewX(-12deg)',
+            color: 'var(--text-main)',
+            height: '29px'
+          }}>
+            <div style={{ transform: 'skewX(12deg)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', cursor: 'default' }}>
+                {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
+              </span>
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.05" 
+                value={volume} 
+                onChange={handleVolumeChange}
+                title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
+                style={{
+                  width: '60px',
+                  height: '4px',
+                  accentColor: 'var(--f1-red)',
+                  cursor: 'pointer',
+                  background: 'var(--border-color-default)',
+                  border: 'none',
+                  outline: 'none'
+                }}
+              />
+              <span className="text-numeric" style={{ fontSize: '0.7rem', fontWeight: 'bold', minWidth: '28px', textAlign: 'right' }}>
+                {Math.round(volume * 100)}%
+              </span>
+            </div>
+          </div>
 
           <button 
             className="btn" 
