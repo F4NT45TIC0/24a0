@@ -21,21 +21,45 @@ export default function App() {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'pt');
   const [activeAiGrid, setActiveAiGrid] = useState([]);
   const [introPhase, setIntroPhase] = useState(() => {
-    return localStorage.getItem('visited_before') ? 'none' : 'pre-video';
+    return localStorage.getItem('visited_before') ? 'none' : 'video';
+  });
+  const [showWelcomeSplash, setShowWelcomeSplash] = useState(() => {
+    return !localStorage.getItem('visited_before');
   });
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
 
-  // Resilient autoplay sound check
+  // Play background audio continuously at 30% volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      
+      const playAudio = () => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+        }
+      };
+
+      // Try playing immediately
+      audioRef.current.play().catch(() => {
+        console.log("Audio autoplay blocked by browser. Setting up interaction listeners...");
+        const startOnInteract = () => {
+          playAudio();
+          document.removeEventListener('click', startOnInteract);
+          document.removeEventListener('keydown', startOnInteract);
+        };
+        document.addEventListener('click', startOnInteract);
+        document.addEventListener('keydown', startOnInteract);
+      });
+    }
+  }, []);
+
+  // Resilient video autoplay check (muted to ensure success)
   useEffect(() => {
     if (introPhase === 'video' && videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.play().catch(err => {
-        console.log("Autoplay with sound blocked, trying muted...", err);
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          videoRef.current.play().catch(e => console.log("Failed to play video:", e));
-        }
-      });
+      videoRef.current.muted = true;
+      videoRef.current.volume = 0;
+      videoRef.current.play().catch(e => console.log("Failed to play video:", e));
     }
   }, [introPhase]);
 
@@ -403,86 +427,31 @@ export default function App() {
   };
 
   // Phase 1: Video Intro (CRT retro TV)
-  if (introPhase === 'pre-video' || introPhase === 'video' || introPhase === 'shutting-down') {
+  if (introPhase === 'video' || introPhase === 'shutting-down') {
     return (
       <div className="crt-wrapper">
-        {introPhase !== 'pre-video' && (
-          <button className="crt-skip-btn" onClick={handleSkipIntro}>
-            {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
-          </button>
-        )}
+        <audio 
+          ref={audioRef} 
+          src="/Musica.webm" 
+          loop 
+          autoPlay
+          style={{ display: 'none' }}
+        />
+        <button className="crt-skip-btn" onClick={handleSkipIntro}>
+          {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
+        </button>
         
         <div className="crt-case">
           <div className="crt-screen-container">
             <div className={`crt-screen crt-flicker ${introPhase === 'shutting-down' ? 'turning-off' : ''}`}>
-              {introPhase === 'pre-video' ? (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  color: 'var(--green-neon)',
-                  fontFamily: 'var(--font-f1-header)',
-                  textShadow: '0 0 8px var(--green-neon)',
-                  textAlign: 'center',
-                  padding: '2rem',
-                  gap: '2.2rem',
-                  background: '#040508'
-                }}>
-                  <div className="pulse-effect" style={{ fontSize: '1.2rem', letterSpacing: '3px', fontWeight: 'bold' }}>
-                    [ SYSTEM STANDBY ]
-                  </div>
-                  
-                  {/* Glowing red retro dial / power key */}
-                  <button 
-                    onClick={() => setIntroPhase('video')}
-                    style={{
-                      width: '110px',
-                      height: '110px',
-                      borderRadius: '50%',
-                      background: '#151515',
-                      border: '6px solid var(--f1-red)',
-                      boxShadow: '0 0 35px var(--f1-red-glow), inset 0 0 15px rgba(225, 6, 0, 0.3)',
-                      color: 'var(--f1-red)',
-                      fontSize: '3rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'var(--transition-smooth)',
-                      position: 'relative'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 50px rgba(225, 6, 0, 0.9), inset 0 0 20px rgba(225, 6, 0, 0.5)';
-                      e.currentTarget.style.borderColor = '#ff251d';
-                      e.currentTarget.style.color = '#ff251d';
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 35px var(--f1-red-glow), inset 0 0 15px rgba(225, 6, 0, 0.3)';
-                      e.currentTarget.style.borderColor = 'var(--f1-red)';
-                      e.currentTarget.style.color = 'var(--f1-red)';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    ⏻
-                  </button>
-
-                  <div style={{ fontSize: '0.8rem', letterSpacing: '1px', opacity: 0.8, fontFamily: 'var(--font-f1-body)', color: 'var(--text-muted)' }}>
-                    {lang === 'pt' ? 'LIGAR TRANSMISSÃO COM SOM' : 'TURN POWER ON (WITH AUDIO)'}
-                  </div>
-                </div>
-              ) : (
-                <video 
-                  ref={videoRef}
-                  src="/Video.mp4" 
-                  playsInline 
-                  autoPlay 
-                  onEnded={handleSkipIntro}
-                  className="crt-video"
-                />
-              )}
+              <video 
+                ref={videoRef}
+                src="/Video.mp4" 
+                playsInline 
+                autoPlay 
+                onEnded={handleSkipIntro}
+                className="crt-video"
+              />
             </div>
           </div>
         </div>
@@ -491,10 +460,16 @@ export default function App() {
   }
 
   // Phase 2: Calibration Welcome Splash
-  const showWelcomeSplash = !localStorage.getItem('visited_before');
   if (showWelcomeSplash) {
     return (
       <div className="modal-overlay" style={{ background: 'var(--bg-darker)', display: 'flex', flexDirection: 'column', justifyItems: 'center', alignItems: 'center', zIndex: 9999 }}>
+        <audio 
+          ref={audioRef} 
+          src="/Musica.webm" 
+          loop 
+          autoPlay
+          style={{ display: 'none' }}
+        />
         <div className="panel animate-fadeIn" style={{ maxWidth: '550px', textAlign: 'center', padding: '3.5rem 2rem', border: '1px solid var(--f1-red)', boxShadow: '0 0 40px var(--f1-red-glow)' }}>
           <span className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1.2rem', fontWeight: 900, letterSpacing: '4px' }}>
             SYSTEM CALIBRATION
@@ -530,8 +505,7 @@ export default function App() {
             style={{ width: '100%', maxWidth: '280px', padding: '1rem' }}
             onClick={() => {
               localStorage.setItem('visited_before', 'true');
-              // Trigger state refresh
-              setIntroPhase('none');
+              setShowWelcomeSplash(false);
             }}
           >
             <span className="btn-content" style={{ fontSize: '0.9rem' }}>
@@ -545,6 +519,13 @@ export default function App() {
 
   return (
     <div>
+      <audio 
+        ref={audioRef} 
+        src="/Musica.webm" 
+        loop 
+        autoPlay
+        style={{ display: 'none' }}
+      />
       {/* Global Navbar */}
       <header style={{
         background: 'var(--bg-dark)',
