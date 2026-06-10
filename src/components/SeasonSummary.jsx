@@ -125,7 +125,7 @@ export default function SeasonSummary({
                           <span>{drv.name}</span>
                           {isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
                         </td>
-                        <td style={{ color: isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
+                        <td style={{ color: isPlayer ? 'var(--green-neon)' : 'var(--text-muted)' }}>{drv.teamName}</td>
                         <td className="text-numeric" style={{ textAlign: 'right' }}>{drv.wins}</td>
                         <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '0.5rem', fontWeight: 'bold' }}>{drv.points}</td>
                       </tr>
@@ -190,7 +190,7 @@ export default function SeasonSummary({
                       key={track.id}
                       onClick={() => setSelectedTrack(track)}
                       style={{
-                        background: isCurrent ? 'rgba(255, 24, 1, 0.05)' : 'rgba(255,255,255,0.02)',
+                        background: isCurrent ? 'var(--f1-red-glow)' : 'var(--bg-qualifying-header)',
                         border: `1px solid ${isCurrent ? 'var(--f1-red)' : isCompleted ? 'rgba(0, 255, 135, 0.2)' : 'var(--border-color-default)'}`,
                         borderRadius: '8px',
                         padding: '0.6rem 0.8rem',

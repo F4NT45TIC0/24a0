@@ -44,7 +44,7 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
       <div style={{ marginTop: '1rem' }}>
         {Object.entries(attrs).map(([key, val]) => (
           <div key={key} className="attr-row">
-            <span style={{ fontSize: '0.8rem', color: '#a0aab2' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {attributeLabels[key] || key}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '60%', justifyContent: 'flex-end' }}>
@@ -89,13 +89,13 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
                type === 'chassis' ? 'Chassi' : 
                type === 'engine' ? 'Motor' : 'Chefe de Equipe'}
             </span>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.1rem', color: '#fff' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.1rem', color: 'var(--text-bright)' }}>
               {item.name}
             </h3>
             
             {/* Show Year and Nationality ONLY in Classic Mode */}
             {!hideAttributes && (
-              <p style={{ fontSize: '0.75rem', color: '#8a92a6', marginTop: '0.05rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.05rem' }}>
                 {item.nationality ? `${item.nationality} • ` : ''}
                 {item.year ? `Ano: ${item.year}` : item.era || ''}
               </p>
@@ -105,8 +105,8 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
           {/* Rating Badge */}
           {!hideAttributes && (
             <div style={{
-              background: 'rgba(0,0,0,0.4)',
-              border: `1px solid ${isSelected ? 'var(--green-neon)' : 'rgba(255,255,255,0.1)'}`,
+              background: 'var(--bg-qualifying-header)',
+              border: `1px solid ${isSelected ? 'var(--green-neon)' : 'var(--border-color-default)'}`,
               borderRadius: '8px',
               padding: '0.4rem 0.6rem',
               textAlign: 'center',
@@ -114,7 +114,7 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
               <span className="text-numeric" style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--yellow-neon)' }}>
                 {item.rating}
               </span>
-              <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: '#8a92a6', fontWeight: 800 }}>OVR</div>
+              <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 800 }}>OVR</div>
             </div>
           )}
         </div>
@@ -123,10 +123,10 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
         {!hideAttributes && (
           <p style={{ 
             fontSize: '0.8rem', 
-            color: '#c2c8d4', 
+            color: 'var(--text-card-desc)', 
             marginTop: '0.8rem', 
             lineHeight: '1.3',
-            borderLeft: '2px solid rgba(255,255,255,0.15)',
+            borderLeft: '2px solid var(--border-color-default)',
             paddingLeft: '0.5rem',
             minHeight: '42px'
           }}>
@@ -146,7 +146,7 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
             alignItems: 'center', 
             marginTop: '1rem',
             paddingTop: '0.5rem',
-            borderTop: '1px solid rgba(255,255,255,0.05)'
+            borderTop: '1px solid var(--border-color-default)'
           }}>
             <span style={{ 
               fontSize: '0.7rem', 
@@ -161,7 +161,7 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
             </span>
             
             {item.historicalTeams && item.historicalTeams.length > 0 && (
-              <span style={{ fontSize: '0.7rem', color: '#8a92a6' }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                 Histórico: {item.historicalTeams[0]}
               </span>
             )}

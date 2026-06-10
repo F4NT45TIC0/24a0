@@ -1070,13 +1070,13 @@ export default function RaceSimulation({
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '1rem',
-          background: 'rgba(255,255,255,0.02)',
+          background: 'var(--bg-qualifying-header)',
           padding: '0.8rem 1.2rem',
           borderRadius: '10px',
-          border: '1px solid rgba(255,255,255,0.05)'
+          border: '1px solid var(--border-color-default)'
         }}>
           <div>
-            <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span>GP DO {track.country.toUpperCase()}</span>
               {weather === 'chuva' ? (
                 <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>CHUVA</span>
@@ -1091,8 +1091,8 @@ export default function RaceSimulation({
                 <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>VSC</span>
               )}
             </h2>
-            <p style={{ color: '#8a92a6', fontSize: '0.85rem', marginTop: '0.1rem' }}>
-              Circuito: <strong style={{ color: '#fff' }}>{track.name}</strong> • Volta <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>{currentLap}</strong> de {totalLaps}
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.1rem' }}>
+              Circuito: <strong style={{ color: 'var(--text-bright)' }}>{track.name}</strong> • Volta <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>{currentLap}</strong> de {totalLaps}
             </p>
           </div>
 
@@ -1307,7 +1307,7 @@ export default function RaceSimulation({
                 
                 {/* Pulsing signal LED */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ fontSize: '0.65rem', color: '#8a92a6', textTransform: 'uppercase' }}>Sinal</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sinal</span>
                   <div 
                     className={isPlaying ? 'flash-effect' : ''} 
                     style={{
@@ -1389,9 +1389,9 @@ export default function RaceSimulation({
             <div style={{ 
               marginTop: '1rem', 
               paddingTop: '0.8rem', 
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid var(--border-color-default)',
               fontSize: '0.72rem', 
-              color: '#8a92a6',
+              color: 'var(--text-muted)',
               textAlign: 'center',
               lineHeight: '1.3'
             }}>
@@ -1475,9 +1475,9 @@ export default function RaceSimulation({
                 </div>
 
                 {/* Pitstop setup */}
-                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <div style={{ background: 'var(--bg-qualifying-header)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color-default)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d1PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d1PitRequest ? 'var(--green-neon)' : 'var(--text-main)' }}>Chamar Box nesta Volta</span>
                     <input 
                       type="checkbox" 
                       checked={d1PitRequest}
@@ -1488,7 +1488,7 @@ export default function RaceSimulation({
                   
                   {d1PitRequest && (
                     <div style={{ marginTop: '0.4rem' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#8a92a6', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
                       <div style={{ display: 'flex', gap: '0.2rem' }}>
                         {['S', 'M', 'H', 'W'].map(t => (
                           <button 
@@ -1499,9 +1499,9 @@ export default function RaceSimulation({
                               padding: '0.2rem',
                               fontSize: '0.72rem',
                               fontWeight: 'bold',
-                              background: d1SelectedNextTyre === t ? 'var(--f1-red)' : 'rgba(255,255,255,0.05)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              color: '#fff',
+                              background: d1SelectedNextTyre === t ? 'var(--f1-red)' : 'var(--bg-card)',
+                              border: '1px solid var(--border-color-default)',
+                              color: d1SelectedNextTyre === t ? '#fff' : 'var(--text-main)',
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
@@ -1597,9 +1597,9 @@ export default function RaceSimulation({
                 </div>
 
                 {/* Pitstop setup */}
-                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <div style={{ background: 'var(--bg-qualifying-header)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color-default)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d2PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d2PitRequest ? 'var(--green-neon)' : 'var(--text-main)' }}>Chamar Box nesta Volta</span>
                     <input 
                       type="checkbox" 
                       checked={d2PitRequest}
@@ -1610,7 +1610,7 @@ export default function RaceSimulation({
                   
                   {d2PitRequest && (
                     <div style={{ marginTop: '0.4rem' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#8a92a6', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
                       <div style={{ display: 'flex', gap: '0.2rem' }}>
                         {['S', 'M', 'H', 'W'].map(t => (
                           <button 
@@ -1621,9 +1621,9 @@ export default function RaceSimulation({
                               padding: '0.2rem',
                               fontSize: '0.72rem',
                               fontWeight: 'bold',
-                              background: d2SelectedNextTyre === t ? 'var(--f1-red)' : 'rgba(255,255,255,0.05)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              color: '#fff',
+                              background: d2SelectedNextTyre === t ? 'var(--f1-red)' : 'var(--bg-card)',
+                              border: '1px solid var(--border-color-default)',
+                              color: d2SelectedNextTyre === t ? '#fff' : 'var(--text-main)',
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
