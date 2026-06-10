@@ -2,23 +2,44 @@ import React from 'react';
 import { getLocalItem } from '../data/itemTranslations';
 
 const attributeLabels = {
-  // Drivers
-  speed: "Velocidade",
-  rain: "Chuva",
-  racecraft: "Ritmo de Corrida",
-  experience: "Experiência",
-  // Chassis
-  downforce: "Força Aerodinâmica",
-  efficiency: "Arrasto/Eficiência",
-  tireWear: "Desgaste de Pneus",
-  reliability: "Confiabilidade",
-  // Engine
-  power: "Potência",
-  fuelEfficiency: "Consumo de Combustível",
-  // Principal
-  strategy: "Estratégia",
-  pitstops: "Paradas nos Boxes",
-  development: "Desenvolvimento/P&D"
+  pt: {
+    // Drivers
+    speed: "Velocidade",
+    rain: "Chuva",
+    racecraft: "Ritmo de Corrida",
+    experience: "Experiência",
+    // Chassis
+    downforce: "Força Aerodinâmica",
+    efficiency: "Arrasto/Eficiência",
+    tireWear: "Desgaste de Pneus",
+    reliability: "Confiabilidade",
+    // Engine
+    power: "Potência",
+    fuelEfficiency: "Consumo de Combustível",
+    // Principal
+    strategy: "Estratégia",
+    pitstops: "Paradas nos Boxes",
+    development: "Desenvolvimento/P&D"
+  },
+  en: {
+    // Drivers
+    speed: "Speed",
+    rain: "Rain",
+    racecraft: "Racecraft",
+    experience: "Experience",
+    // Chassis
+    downforce: "Downforce",
+    efficiency: "Drag/Efficiency",
+    tireWear: "Tyre Wear",
+    reliability: "Reliability",
+    // Engine
+    power: "Power",
+    fuelEfficiency: "Fuel Efficiency",
+    // Principal
+    strategy: "Strategy",
+    pitstops: "Pit Stops",
+    development: "Development/R&D"
+  }
 };
 
 export default function DraftCard({ item: rawItem, type, isSelected, onClick, hideAttributes = false, lang = 'pt' }) {
@@ -57,7 +78,7 @@ export default function DraftCard({ item: rawItem, type, isSelected, onClick, hi
         {Object.entries(attrs).map(([key, val]) => (
           <div key={key} className="attr-row">
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              {attributeLabels[key] || key}
+              {attributeLabels[lang]?.[key] || attributeLabels['pt']?.[key] || key}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '60%', justifyContent: 'flex-end' }}>
               <div className="attr-bar-container">

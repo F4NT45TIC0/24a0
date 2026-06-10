@@ -39,29 +39,54 @@ export default function App() {
     localStorage.setItem('bg_volume', val.toString());
   };
 
-  // Play background audio continuously at target volume
+  // Media lifecycle and continuous synchronization logic
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      
-      const playAudio = () => {
-        if (audioRef.current) {
-          audioRef.current.play().catch(e => console.log("Audio play failed:", e));
-        }
-      };
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    if (!video || !audio) return;
 
-      // Try playing immediately
-      audioRef.current.play().catch(() => {
-        console.log("Audio autoplay blocked by browser. Setting up interaction listeners...");
-        const startOnInteract = () => {
-          playAudio();
-          document.removeEventListener('click', startOnInteract);
-          document.removeEventListener('keydown', startOnInteract);
-        };
-        document.addEventListener('click', startOnInteract);
-        document.addEventListener('keydown', startOnInteract);
-      });
-    }
+    // 1. Play video (muted to bypass autoplay restrictions)
+    video.muted = true;
+    video.play().catch(e => console.log("Video autoplay failed:", e));
+
+    // 2. Play audio (unmuted)
+    audio.volume = volume;
+    
+    const startAudio = () => {
+      audio.play()
+        .then(() => {
+          console.log("Audio playing. Syncing audio position with video position...");
+          // Sync audio position to video so they are aligned
+          audio.currentTime = video.currentTime;
+        })
+        .catch(err => {
+          console.log("Audio autoplay blocked by browser. Awaiting user interaction...", err);
+        });
+    };
+
+    // Attempt to start audio immediately
+    startAudio();
+
+    // Setup fallback user interaction listener to resume/start audio
+    const handleInteraction = () => {
+      if (audio.paused) {
+        startAudio();
+      }
+      // Clean up listeners
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
   }, []);
 
   // Sync audio element volume reactively
@@ -71,36 +96,20 @@ export default function App() {
     }
   }, [volume]);
 
-  // Resilient video autoplay check (muted to ensure success)
+  // Continuous background drift correction (Video snaps silently to Audio)
   useEffect(() => {
-    if (introPhase === 'video' && videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.volume = 0;
-      videoRef.current.play().catch(e => console.log("Failed to play video:", e));
-    }
-  }, [introPhase]);
-
-  // Sync audio play position with video play position to avoid any delay/drift
-  useEffect(() => {
-    let interval;
-    if (introPhase === 'video') {
-      interval = setInterval(() => {
-        if (videoRef.current && audioRef.current && !videoRef.current.paused) {
-          const videoTime = videoRef.current.currentTime;
-          const audioTime = audioRef.current.currentTime;
-          const diff = Math.abs(audioTime - videoTime);
-          
-          // If the audio is out of sync by more than 150ms, snap it to the video time
-          if (diff > 0.15) {
-            audioRef.current.currentTime = videoTime;
-          }
+    const interval = setInterval(() => {
+      const video = videoRef.current;
+      const audio = audioRef.current;
+      if (video && audio && !video.paused && !audio.paused) {
+        const diff = Math.abs(audio.currentTime - video.currentTime);
+        if (diff > 0.15) {
+          video.currentTime = audio.currentTime;
         }
-      }, 150); // check every 150ms
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [introPhase]);
+      }
+    }, 150); // check every 150ms
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSkipIntro = () => {
     setIntroPhase('shutting-down');
@@ -340,24 +349,6 @@ export default function App() {
       case 'menu':
         return (
           <div className="container animate-fadeIn" style={{ maxWidth: '750px', marginTop: '3rem', position: 'relative' }}>
-            <video 
-              src="/VideoBackground.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                objectFit: 'cover',
-                zIndex: -1,
-                opacity: 0.15,
-                pointerEvents: 'none'
-              }}
-            />
             <div className="panel animate-fadeIn" style={{ textAlign: 'center', padding: '3.5rem 2rem' }}>
               <span className="text-numeric" style={{ 
                 color: 'var(--f1-red)', 
@@ -434,10 +425,10 @@ export default function App() {
                 textAlign: 'left'
               }}>
                 <h4 style={{ color: 'var(--text-bright)', marginBottom: '0.5rem' }}>{t.howToPlayTitle}</h4>
-                <ul style={{ paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <li><strong>Draft:</strong> {t.howToPlayDraft}</li>
-                  <li><strong>Sinergias:</strong> {t.howToPlaySynergy}</li>
-                  <li><strong>Simulação Dupla:</strong> {t.howToPlaySim}</li>
+                <ul style={{ paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', listStyleType: 'square' }}>
+                  <li>{t.howToPlayDraft}</li>
+                  <li>{t.howToPlaySynergy}</li>
+                  <li>{t.howToPlaySim}</li>
                 </ul>
               </div>
             </div>
@@ -483,240 +474,263 @@ export default function App() {
     }
   };
 
-  // Phase 1: Video Intro (CRT retro TV)
-  if (introPhase === 'video' || introPhase === 'shutting-down') {
-    return (
-      <div className="crt-wrapper">
-        <audio 
-          ref={audioRef} 
-          src="/Musica.webm" 
-          loop 
-          autoPlay
-          style={{ display: 'none' }}
-        />
-        <button className="crt-skip-btn" onClick={handleSkipIntro}>
-          {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
-        </button>
-        
-        <div className="crt-case">
-          <div className="crt-screen-container">
-            <div className={`crt-screen crt-flicker ${introPhase === 'shutting-down' ? 'turning-off' : ''}`}>
-              <video 
-                ref={videoRef}
-                src="/Video.mp4" 
-                playsInline 
-                autoPlay 
-                onEnded={handleSkipIntro}
-                className="crt-video"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Phase 2: Calibration Welcome Splash
-  if (showWelcomeSplash) {
-    return (
-      <div className="modal-overlay" style={{ background: 'var(--bg-darker)', display: 'flex', flexDirection: 'column', justifyItems: 'center', alignItems: 'center', zIndex: 9999 }}>
-        <audio 
-          ref={audioRef} 
-          src="/Musica.webm" 
-          loop 
-          autoPlay
-          style={{ display: 'none' }}
-        />
-        <div className="panel animate-fadeIn" style={{ maxWidth: '550px', textAlign: 'center', padding: '3.5rem 2rem', border: '1px solid var(--f1-red)', boxShadow: '0 0 40px var(--f1-red-glow)' }}>
-          <span className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1.2rem', fontWeight: 900, letterSpacing: '4px' }}>
-            SYSTEM CALIBRATION
-          </span>
-          <h1 className="glow-text pulse-effect" style={{ fontSize: '5rem', margin: '1rem 0', fontWeight: 900, lineHeight: 1, color: 'var(--text-bright)' }}>
-            24a0
-          </h1>
-          <p style={{ color: 'var(--text-card-desc)', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
-            {lang === 'pt' 
-              ? 'Conectando ao sistema de telemetria em tempo real. Prepare-se para gerenciar recursos lendários da Fórmula 1 e liderar sua equipe rumo à temporada perfeita.'
-              : 'Connecting to real-time telemetry feed. Prepare to draft legendary Formula 1 assets and lead your team to the perfect season.'}
-          </p>
-          
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            <button 
-              className="theme-toggle" 
-              onClick={() => setLang('pt')}
-              style={{ border: lang === 'pt' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'pt' ? 'var(--green-neon)' : 'var(--text-muted)' }}
-            >
-              <span className="theme-toggle-content">PORTUGUÊS</span>
-            </button>
-            <button 
-              className="theme-toggle" 
-              onClick={() => setLang('en')}
-              style={{ border: lang === 'en' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'en' ? 'var(--green-neon)' : 'var(--text-muted)' }}
-            >
-              <span className="theme-toggle-content">ENGLISH</span>
-            </button>
-          </div>
-
-          <button 
-            className="btn btn-primary"
-            style={{ width: '100%', maxWidth: '280px', padding: '1rem' }}
-            onClick={() => {
-              localStorage.setItem('visited_before', 'true');
-              setShowWelcomeSplash(false);
-            }}
-          >
-            <span className="btn-content" style={{ fontSize: '0.9rem' }}>
-              {lang === 'pt' ? 'INICIAR TRANSMISSÃO' : 'INITIALIZE FEED'}
-            </span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div>
+    <div className="app-root" style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Persistent Audio Tag */}
       <audio 
         ref={audioRef} 
         src="/Musica.webm" 
         loop 
-        autoPlay
         style={{ display: 'none' }}
       />
-      {/* Global Navbar */}
-      <header style={{
-        background: 'var(--bg-dark)',
-        borderBottom: '1px solid var(--border-color-default)',
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50
-      }}>
-        <div 
-          onClick={handleRestartGame} 
-          style={{ 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.5rem' 
-          }}
-        >
-          <span className="text-numeric" style={{ 
-            fontSize: '1.6rem', 
-            fontWeight: 900, 
-            color: 'var(--f1-red)',
-            letterSpacing: '1px',
-            textShadow: '0 0 10px rgba(225,6,0,0.3)'
-          }}>
-            {t.appTitle}
-          </span>
-          <span style={{ fontSize: '0.75rem', background: 'var(--bg-qualifying-header)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
-            {t.appSubtitle}
-          </span>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <button 
-            className="theme-toggle" 
-            onClick={() => setLang(prev => prev === 'pt' ? 'en' : 'pt')}
-            title={lang === 'pt' ? 'Mudar para Inglês' : 'Switch to Portuguese'}
-          >
-            <span className="theme-toggle-content">
-              {t.langToggle}
-            </span>
-          </button>
-
-          <button 
-            className="theme-toggle" 
-            onClick={toggleTheme}
-            title="Alternar Tema"
-          >
-            <span className="theme-toggle-content">
-              {theme === 'light' ? t.themeToggleDark : t.themeToggleLight}
-            </span>
-          </button>
-
-          {/* Volume Control */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.5rem', 
-            background: 'transparent', 
-            padding: '0.4rem 0.75rem', 
-            fontSize: '0.75rem', 
-            border: '1px solid var(--border-color-default)', 
-            borderRadius: 'var(--border-radius)',
-            transform: 'skewX(-12deg)',
-            color: 'var(--text-main)',
-            height: '29px'
-          }}>
-            <div style={{ transform: 'skewX(12deg)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', cursor: 'default' }}>
-                {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
-              </span>
-              <input 
-                type="range" 
-                min="0" 
-                max="1" 
-                step="0.01" 
-                value={volume} 
-                onChange={handleVolumeChange}
-                title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
-                style={{
-                  width: '60px',
-                  height: '4px',
-                  accentColor: 'var(--f1-red)',
-                  cursor: 'pointer',
-                  background: 'var(--border-color-default)',
-                  border: 'none',
-                  outline: 'none'
-                }}
-              />
-              <span className="text-numeric" style={{ fontSize: '0.7rem', fontWeight: 'bold', minWidth: '28px', textAlign: 'right' }}>
-                {Math.round(volume * 100)}%
-              </span>
-            </div>
-          </div>
-
-          <button 
-            className="btn" 
-            onClick={() => setIsSupportOpen(true)}
-            style={{ 
-              padding: '0.4rem 0.8rem', 
-              fontSize: '0.75rem', 
-              border: '1px solid var(--yellow-neon)', 
-              color: 'var(--yellow-neon)',
-              textTransform: 'none',
-              background: 'rgba(255, 202, 0, 0.05)'
-            }}
-          >
-            <span className="btn-content">{t.supportBtn}</span>
-          </button>
-          
-          {screen !== 'menu' && team.driver1 && (
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
-              <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
-            </div>
+      {/* Persistent Unified Video Player Container */}
+      <div className={`unified-video-container ${introPhase === 'video' || introPhase === 'shutting-down' ? 'crt-mode' : 'bg-mode'} ${introPhase === 'shutting-down' ? 'turning-off' : ''} ${(introPhase === 'none' && !showWelcomeSplash && screen !== 'menu') ? 'hidden' : ''}`}>
+        <div className="video-screen-wrapper">
+          <video 
+            ref={videoRef}
+            src="/VideoBackground.mp4" 
+            playsInline 
+            muted
+            loop={introPhase === 'none'}
+            onEnded={handleSkipIntro}
+            className="unified-video-element"
+          />
+          {(introPhase === 'video' || introPhase === 'shutting-down') && (
+            <>
+              <div className="crt-effects"></div>
+              <button className="crt-skip-btn" onClick={handleSkipIntro}>
+                {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
+              </button>
+            </>
           )}
         </div>
-      </header>
+      </div>
 
-      {renderScreen()}
+      {/* Welcome Splash overlay */}
+      {introPhase === 'none' && showWelcomeSplash && (
+        <div className="modal-overlay" style={{ 
+          background: 'rgba(7, 8, 11, 0.85)', 
+          backdropFilter: 'blur(8px)',
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          zIndex: 9999 
+        }}>
+          <div className="panel animate-fadeIn" style={{ maxWidth: '550px', textAlign: 'center', padding: '3.5rem 2rem', border: '1px solid var(--f1-red)', boxShadow: '0 0 40px var(--f1-red-glow)' }}>
+            <span className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1.2rem', fontWeight: 900, letterSpacing: '4px' }}>
+              SYSTEM CALIBRATION
+            </span>
+            <h1 className="glow-text pulse-effect" style={{ fontSize: '5rem', margin: '1rem 0', fontWeight: 900, lineHeight: 1, color: 'var(--text-bright)' }}>
+              24a0
+            </h1>
+            <p style={{ color: 'var(--text-card-desc)', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
+              {lang === 'pt' 
+                ? 'Conectando ao sistema de telemetria em tempo real. Prepare-se para gerenciar recursos lendários da Fórmula 1 e liderar sua equipe rumo à temporada perfeita.'
+                : 'Connecting to real-time telemetry feed. Prepare to draft legendary Formula 1 assets and lead your team to the perfect season.'}
+            </p>
+            
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <button 
+                className="theme-toggle" 
+                onClick={() => setLang('pt')}
+                style={{ border: lang === 'pt' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'pt' ? 'var(--green-neon)' : 'var(--text-muted)' }}
+              >
+                <span className="theme-toggle-content">PORTUGUÊS</span>
+              </button>
+              <button 
+                className="theme-toggle" 
+                onClick={() => setLang('en')}
+                style={{ border: lang === 'en' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'en' ? 'var(--green-neon)' : 'var(--text-muted)' }}
+              >
+                <span className="theme-toggle-content">ENGLISH</span>
+              </button>
+            </div>
 
-      {/* Global Ad Banner placeholder at the bottom */}
-      {screen !== 'race' && <AdBanner type="leaderboard" />}
+            <button 
+              className="btn btn-primary"
+              style={{ width: '100%', maxWidth: '280px', padding: '1rem' }}
+              onClick={() => {
+                localStorage.setItem('visited_before', 'true');
+                setShowWelcomeSplash(false);
+              }}
+            >
+              <span className="btn-content" style={{ fontSize: '0.9rem' }}>
+                {lang === 'pt' ? 'INICIAR TRANSMISSÃO' : 'INITIALIZE FEED'}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Support Modal dialog */}
-      <SupportModal 
-        isOpen={isSupportOpen} 
-        onClose={() => setIsSupportOpen(false)} 
-        t={t}
-        lang={lang}
-      />
+      {/* Main UI layout */}
+      {introPhase === 'none' && !showWelcomeSplash && (
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          {/* Global Navbar */}
+          <header style={{
+            background: 'var(--bg-dark)',
+            borderBottom: '1px solid var(--border-color-default)',
+            padding: '1rem 2rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50
+          }}>
+            <div 
+              onClick={handleRestartGame} 
+              style={{ 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem' 
+              }}
+            >
+              <span className="text-numeric" style={{ 
+                fontSize: '1.6rem', 
+                fontWeight: 900, 
+                color: 'var(--f1-red)',
+                letterSpacing: '1px',
+                textShadow: '0 0 10px rgba(225,6,0,0.3)'
+              }}>
+                {t.appTitle}
+              </span>
+              <span style={{ fontSize: '0.75rem', background: 'var(--bg-qualifying-header)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
+                {t.appSubtitle}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <button 
+                className="theme-toggle" 
+                onClick={() => setLang(prev => prev === 'pt' ? 'en' : 'pt')}
+                title={lang === 'pt' ? 'Mudar para Inglês' : 'Switch to Portuguese'}
+              >
+                <span className="theme-toggle-content">
+                  {t.langToggle}
+                </span>
+              </button>
+
+              <button 
+                className="theme-toggle" 
+                onClick={toggleTheme}
+                title="Alternar Tema"
+              >
+                <span className="theme-toggle-content">
+                  {theme === 'light' ? t.themeToggleDark : t.themeToggleLight}
+                </span>
+              </button>
+
+              {/* Custom Telemetry Volume Control */}
+              <div className="telemetry-volume-wrapper" style={{
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.6rem', 
+                background: 'var(--bg-qualifying-header)', 
+                padding: '0.4rem 0.8rem', 
+                border: '1px solid var(--border-color-default)', 
+                borderRadius: 'var(--border-radius)',
+                transform: 'skewX(-12deg)',
+                color: 'var(--text-main)',
+                height: '32px'
+              }}>
+                <div style={{ transform: 'skewX(12deg)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
+                    {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
+                  </span>
+                  
+                  {/* Telemetry Tachometer-style visualizer bars */}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '14px', marginRight: '4px' }}>
+                    {Array.from({ length: 8 }).map((_, idx) => {
+                      const barVolumeThresh = (idx + 1) / 8;
+                      const isActive = volume >= barVolumeThresh - 0.05;
+                      let barColor = 'rgba(255, 255, 255, 0.08)';
+                      if (isActive) {
+                        if (idx < 3) barColor = 'var(--green-neon)';
+                        else if (idx < 6) barColor = 'var(--yellow-neon)';
+                        else barColor = 'var(--f1-red)';
+                      }
+                      return (
+                        <div 
+                          key={idx}
+                          style={{
+                            width: '3px',
+                            height: `${5 + idx * 1.2}px`,
+                            backgroundColor: barColor,
+                            borderRadius: '1px',
+                            transition: 'background-color 0.1s ease, box-shadow 0.1s ease',
+                            boxShadow: isActive ? `0 0 5px ${barColor}` : 'none'
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="1" 
+                    step="0.01" 
+                    value={volume} 
+                    onChange={handleVolumeChange}
+                    title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
+                    style={{
+                      width: '60px',
+                      height: '4px',
+                      accentColor: 'var(--f1-red)',
+                      cursor: 'pointer',
+                      background: 'var(--border-color-default)',
+                      border: 'none',
+                      outline: 'none',
+                      margin: 0
+                    }}
+                  />
+                  <span className="text-numeric" style={{ fontSize: '0.75rem', fontWeight: 'bold', minWidth: '32px', textAlign: 'right', color: 'var(--text-bright)' }}>
+                    {Math.round(volume * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              <button 
+                className="btn" 
+                onClick={() => setIsSupportOpen(true)}
+                style={{ 
+                  padding: '0.4rem 0.8rem', 
+                  fontSize: '0.75rem', 
+                  border: '1px solid var(--yellow-neon)', 
+                  color: 'var(--yellow-neon)',
+                  textTransform: 'none',
+                  background: 'rgba(255, 202, 0, 0.05)'
+                }}
+              >
+                <span className="btn-content">{t.supportBtn}</span>
+              </button>
+              
+              {screen !== 'menu' && team.driver1 && (
+                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
+                  <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
+                </div>
+              )}
+            </div>
+          </header>
+
+          {renderScreen()}
+
+          {/* Global Ad Banner placeholder at the bottom */}
+          {screen !== 'race' && <AdBanner type="leaderboard" />}
+
+          {/* Support Modal dialog */}
+          <SupportModal 
+            isOpen={isSupportOpen} 
+            onClose={() => setIsSupportOpen(false)} 
+            t={t}
+            lang={lang}
+          />
+        </div>
+      )}
     </div>
   );
 }

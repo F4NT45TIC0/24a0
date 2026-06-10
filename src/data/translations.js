@@ -15,7 +15,7 @@ export const translations = {
     menuWelcome: "Bem-vindo ao 24a0. Seu objetivo é draftar os melhores recursos históricos da Fórmula 1 (Pilotos, Chassi, Motor e Estrategista) e dominar as 24 corridas do campeonato mundial.",
     menuSynergyCall: "Consegue atingir o feito impossível de 24 vitórias consecutivas?",
     classicMode: "Modo Clássico (Ver Atributos)",
-    almanacMode: "Modo Almanaque (Ocular Stats)",
+    almanacMode: "Modo Almanaque (Ocultar Stats)",
     supportText: "Apoiar o Jogo (PIX)",
     howToPlayTitle: "Como jogar:",
     howToPlayDraft: "Draft: Escolha 5 componentes. Você recebe 3 opções aleatórias por slot e tem 3 rerolls.",
