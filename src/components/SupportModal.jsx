@@ -16,7 +16,7 @@ export default function SupportModal({ isOpen, onClose }) {
     <div className="modal-overlay" style={{ zIndex: 110 }}>
       <div className="modal-content animate-fadeIn" style={{ maxWidth: '450px', textAlign: 'center' }}>
         <h2 className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '1.5rem', marginBottom: '1rem' }}>
-          ☕ APOIE O PROJETO
+          APOIE O PROJETO
         </h2>
         
         <p style={{ fontSize: '0.9rem', color: '#c2c8d4', lineHeight: 1.5, marginBottom: '1.5rem' }}>

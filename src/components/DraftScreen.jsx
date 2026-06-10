@@ -185,7 +185,7 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
                 onClick={handleReroll}
                 disabled={rerolls === 0}
               >
-                🔄 Trocar Opções
+                <span className="btn-content">Trocar Opções</span>
               </button>
               <span className="text-numeric" style={{ 
                 marginLeft: '1rem', 

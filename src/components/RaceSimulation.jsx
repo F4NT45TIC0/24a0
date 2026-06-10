@@ -247,7 +247,7 @@ export default function RaceSimulation({
     } else {
       setPhase('race');
       setCurrentLap(1);
-      setLog(["🚥 LARGADA! Luzes apagadas, os carros partem para a volta 1!"]);
+      setLog(["[SINAL] LARGADA: Luzes apagadas, os carros partem para a volta 1!"]);
     }
   };
 
@@ -255,7 +255,7 @@ export default function RaceSimulation({
   const runQuickSimulation = () => {
     let currentStates = [...driverStates];
     let simWeather = 'seco';
-    let simulationLogs = ["🚥 LARGADA! Os carros iniciam o GP!"];
+    let simulationLogs = ["[SINAL] LARGADA: Os carros iniciam o GP!"];
     let simSCStatus = 'none';
 
     currentStates = currentStates.map(d => {
@@ -269,11 +269,11 @@ export default function RaceSimulation({
       // Weather check
       if (rainLap && lap === rainLap) {
         simWeather = 'chuva';
-        simulationLogs.push(`🌧️ Volta ${lap}: Começa a CHOVER forte no circuito!`);
+        simulationLogs.push(`[CLIMA: CHUVA] Volta ${lap}: Começa a CHOVER forte no circuito!`);
       }
       if (dryLap && lap === dryLap) {
         simWeather = 'seco';
-        simulationLogs.push(`☀️ Volta ${lap}: A chuva para e o asfalto seca!`);
+        simulationLogs.push(`[CLIMA: SECO] Volta ${lap}: A chuva para e o asfalto seca!`);
       }
 
       // Safety Car countdown
@@ -287,12 +287,12 @@ export default function RaceSimulation({
         const crashChance = calculateCrashChance(drv, simWeather);
         if (Math.random() < crashChance) {
           const reason = getRandomDNFReason(drv);
-          simulationLogs.push(`💥 Volta ${lap}: ${drv.name} está FORA da corrida! (Razão: ${reason})`);
+          simulationLogs.push(`[INCIDENTE] Volta ${lap}: ${drv.name} está FORA da corrida! (Razão: ${reason})`);
           
           // Trigger Safety Car (60% chance upon DNF)
           if (simSCStatus === 'none' && Math.random() < 0.6) {
             simSCStatus = Math.random() < 0.5 ? 'sc' : 'vsc';
-            simulationLogs.push(`🚨 Volta ${lap}: ${simSCStatus === 'sc' ? 'SAFETY CAR' : 'VSC'} DEPLOYED para limpar os destroços de ${drv.name}!`);
+            simulationLogs.push(`[REGIME DE SC] Volta ${lap}: ${simSCStatus === 'sc' ? 'SAFETY CAR' : 'VSC'} DEPLOYED para limpar os destroços de ${drv.name}!`);
           }
 
           return { ...drv, dNF: true, dnfReason: reason, pos: 20 };
@@ -466,10 +466,10 @@ export default function RaceSimulation({
       const newPos = index + 1;
       
       if (lap > 1 && newPos === 1 && oldPos !== 1) {
-        logs.push(`🏎️ LIDERANÇA! ${d.name} assume a ponta da corrida na volta ${lap}!`);
+        logs.push(`[LIDERANÇA] ${d.name} assume a ponta da corrida na volta ${lap}!`);
       }
       if (d.isPlayer && newPos < oldPos && newPos <= 10 && lap > 1) {
-        logs.push(`🔥 Ultrapassagem! ${d.name} subiu para P${newPos}!`);
+        logs.push(`[ULTRAPASSAGEM] ${d.name} subiu para P${newPos}!`);
       }
 
       return {
@@ -503,9 +503,9 @@ export default function RaceSimulation({
     if (rainLap && currentLap === rainLap) {
       simWeather = 'chuva';
       setWeather('chuva');
-      lapLogs.push(`🌧️ VOLTA ${currentLap}: Nuvens cobrem a pista... COMEÇOU A CHOVER!`);
+      lapLogs.push(`[CLIMA: CHUVA] VOLTA ${currentLap}: Nuvens cobrem a pista... COMEÇOU A CHOVER!`);
       setActiveAlert({
-        title: "🌧️ ALERTA DE CHUVA!",
+        title: "ALERTA DE CHUVA",
         message: "A pista está molhada. Carros com pneus slicks perderão muito tempo e correm alto risco de bater! Planeje paradas para pneu de Chuva (W).",
         type: "rain"
       });
@@ -515,9 +515,9 @@ export default function RaceSimulation({
     if (dryLap && currentLap === dryLap) {
       simWeather = 'seco';
       setWeather('seco');
-      lapLogs.push(`☀️ VOLTA ${currentLap}: A chuva parou! O trilho seco está aparecendo.`);
+      lapLogs.push(`[CLIMA: SECO] VOLTA ${currentLap}: A chuva parou! O trilho seco está aparecendo.`);
       setActiveAlert({
-        title: "☀️ A PISTA ESTÁ SECANDO!",
+        title: "A PISTA ESTÁ SECANDO",
         message: "A chuva parou. Os pneus de chuva (W) começarão a superaquecer e se desgastar rapidamente. Considere voltar para os slicks (Macios, Médios, Duros).",
         type: "rain"
       });
@@ -534,9 +534,9 @@ export default function RaceSimulation({
       if (currentSCLaps <= 0) {
         newSCStatus = 'none';
         setSafetyCarStatus('none');
-        lapLogs.push(`🟢 VOLTA ${currentLap}: Safety Car retornando aos boxes nesta volta. PISTA LIBERADA!`);
+        lapLogs.push(`[PISTA LIBERADA] VOLTA ${currentLap}: Safety Car retornando aos boxes nesta volta. PISTA LIBERADA!`);
       } else {
-        lapLogs.push(`🚨 VOLTA ${currentLap}: Corrida sob regime de ${safetyCarStatus === 'sc' ? 'SAFETY CAR' : 'VSC'}. Ultrapassagens proibidas.`);
+        lapLogs.push(`[REGIME DE SC] VOLTA ${currentLap}: Corrida sob regime de ${safetyCarStatus === 'sc' ? 'SAFETY CAR' : 'VSC'}. Ultrapassagens proibidas.`);
       }
     }
 
@@ -553,7 +553,7 @@ export default function RaceSimulation({
           setD1Puncture(true);
           setD1PitRequest(true); // Automatically request pitstop to help user!
           setActiveAlert({
-            title: `⚠️ PNEU FURADO - ${drv.name}!`,
+            title: `PNEU FURADO - ${drv.name}`,
             message: "O pneu esvaziou devido ao alto desgaste! O piloto foi chamado automaticamente para os boxes nesta volta, mas perderá muito tempo na pista.",
             type: "puncture"
           });
@@ -562,7 +562,7 @@ export default function RaceSimulation({
           setD2Puncture(true);
           setD2PitRequest(true);
           setActiveAlert({
-            title: `⚠️ PNEU FURADO - ${drv.name}!`,
+            title: `PNEU FURADO - ${drv.name}`,
             message: "O pneu esvaziou devido ao alto desgaste! O piloto foi chamado automaticamente para os boxes nesta volta, mas perderá muito tempo na pista.",
             type: "puncture"
           });
@@ -571,7 +571,7 @@ export default function RaceSimulation({
           // AI puncture
           drv.tyreWear = 99;
         }
-        lapLogs.push(`⚠️ INCIDENTE: Pneu furado para ${drv.name}! Andando em ritmo lento.`);
+        lapLogs.push(`[INCIDENTE] Pneu furado para ${drv.name}! Andando em ritmo lento.`);
       }
 
       // Overheating check (Aggressive posture for too long)
@@ -584,17 +584,17 @@ export default function RaceSimulation({
             if (isD1) setD1Overheating(true);
             if (isD2) setD2Overheating(true);
             setActiveAlert({
-              title: `🔥 MOTOR SUPERAQUECENDO - ${drv.name}!`,
+              title: `MOTOR SUPERAQUECENDO - ${drv.name}`,
               message: "O motor está atingindo temperaturas críticas devido à postura Agressiva! Mude a postura para 'Econômica' na próxima volta para resfriar, ou o motor poderá quebrar e abandonar a corrida!",
               type: "engine"
             });
             setIsPlaying(false);
-            lapLogs.push(`🔥 AVISO: Temperatura do motor subindo rapidamente para ${drv.name}!`);
+            lapLogs.push(`[AVISO] Temperatura do motor subindo rapidamente para ${drv.name}!`);
           } else if (isOverheating && Math.random() < 0.40) {
             // Explode!
-            lapLogs.push(`💥 DESASTRE: O motor de ${drv.name} explodiu em fumaça!`);
+            lapLogs.push(`[QUEBRA] O motor de ${drv.name} explodiu em fumaça!`);
             setActiveAlert({
-              title: `💥 QUEBRA DE MOTOR - ${drv.name}!`,
+              title: `QUEBRA DE MOTOR - ${drv.name}`,
               message: `O motor superaquecido não aguentou a pressão e estourou. Fim de prova para ${drv.name}.`,
               type: "dnf"
             });
@@ -605,7 +605,7 @@ export default function RaceSimulation({
           // Cool down
           if (isD1) setD1Overheating(false);
           if (isD2) setD2Overheating(false);
-          lapLogs.push(`✅ RÁDIO: Temperaturas normalizadas para ${drv.name}.`);
+          lapLogs.push(`[RÁDIO] Temperaturas normalizadas para ${drv.name}.`);
         }
       }
 
@@ -649,9 +649,9 @@ export default function RaceSimulation({
         let pitError = 0;
         if (Math.random() < (1 - team.principal.attributes.strategy / 100) * 0.08) {
           pitError = Math.random() * 6 + 4;
-          lapLogs.push(`🔧 RÁDIO: Lentidão na troca do pneu de ${drv.name}! (+${pitError.toFixed(1)}s)`);
+          lapLogs.push(`[RÁDIO: BOX] Lentidão na troca do pneu de ${drv.name}! (+${pitError.toFixed(1)}s)`);
         } else {
-          lapLogs.push(`🔧 RÁDIO: Pitstop perfeito de ${drv.name} (${pitEfficiency.toFixed(1)}s). Trocou para pneu ${requestedTyre}.`);
+          lapLogs.push(`[RÁDIO: BOX] Pitstop perfeito de ${drv.name} (${pitEfficiency.toFixed(1)}s). Trocou para pneu ${requestedTyre}.`);
         }
 
         pitTime = pitstopBase + pitEfficiency + pitError;
@@ -675,7 +675,7 @@ export default function RaceSimulation({
         const crashChance = calculateCrashChance(drv, simWeather);
         if (Math.random() < crashChance) {
           const reason = getRandomDNFReason(drv);
-          lapLogs.push(`💥 VOLTA ${currentLap}: ${drv.name} rodou e bateu forte! Abandono (DNF).`);
+          lapLogs.push(`[INCIDENTE] VOLTA ${currentLap}: ${drv.name} rodou e bateu forte! Abandono (DNF).`);
           
           // Trigger safety car chance
           if (newSCStatus === 'none' && Math.random() < 0.6) {
@@ -685,7 +685,7 @@ export default function RaceSimulation({
             setSafetyCarLapsLeft(2);
             
             setActiveAlert({
-              title: `🚨 ${newSCStatus === 'sc' ? 'SAFETY CAR' : 'VIRTUAL SAFETY CAR'} DEPLOYED!`,
+              title: `${newSCStatus === 'sc' ? 'SAFETY CAR' : 'VIRTUAL SAFETY CAR'} DEPLOYED`,
               message: `${drv.name} bateu no muro e deixou destroços perigosos na pista. ${newSCStatus === 'sc' ? 'O pelotão será compactado!' : 'A velocidade de pista foi limitada.'} Aproveite para fazer pitstops mais baratos!`,
               type: newSCStatus
             });
@@ -693,7 +693,7 @@ export default function RaceSimulation({
           } else {
             if (drv.isPlayer) {
               setActiveAlert({
-                title: "💥 ABANDONO DE CORRIDA!",
+                title: "ABANDONO DE CORRIDA",
                 message: `${drv.name} abandonou a prova após: ${reason}.`,
                 type: "dnf"
               });
@@ -727,7 +727,7 @@ export default function RaceSimulation({
           aiPitTime = pitBase + (Math.random() * 3) + (Math.random() < 0.05 ? Math.random() * 5 + 3 : 0);
           drv.tyre = aiNextTyre;
           drv.tyreWear = 0;
-          lapLogs.push(`🔧 BOX: ${drv.name} (${drv.teamName}) faz sua parada nos boxes.`);
+          lapLogs.push(`[BOX] ${drv.name} (${drv.teamName}) faz sua parada nos boxes.`);
         }
       }
 
@@ -786,7 +786,7 @@ export default function RaceSimulation({
           totalTime: leaderTime + (activeIdx * 1.2)
         };
       });
-      lapLogs.push("🚨 RÁDIO: Pelotão agrupado sob bandeira amarela.");
+      lapLogs.push("[RÁDIO: SC] Pelotão agrupado sob bandeira amarela.");
     }
 
     // Update positions and logs
@@ -797,7 +797,7 @@ export default function RaceSimulation({
     const player1 = updatedPositions.find(d => d.id === 'player_d1');
     const player2 = updatedPositions.find(d => d.id === 'player_d2');
     
-    let summaryComment = `🏁 Volta ${currentLap} Concluída: Liderança por ${leader.name} (${leader.teamName}).`;
+    let summaryComment = `[CRONÔMETRO] Volta ${currentLap} Concluída: Liderança por ${leader.name} (${leader.teamName}).`;
     if (player1 && !player1.dNF) {
       summaryComment += ` P1: ${player1.name} em P${player1.pos} (${player1.tyre}, ${player1.tyreWear.toFixed(0)}% desgaste).`;
     }
@@ -883,7 +883,10 @@ export default function RaceSimulation({
                   }}
                 >
                   <td className="text-numeric" style={{ padding: '0.6rem 1rem', fontWeight: 'bold' }}>{idx + 1}</td>
-                  <td>{drv.name} {drv.isPlayer && '★'}</td>
+                  <td style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>{drv.name}</span>
+                    {drv.isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
+                  </td>
                   <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
                   <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '1rem' }}>{drv.qScore.toFixed(3)}</td>
                 </tr>
@@ -893,7 +896,7 @@ export default function RaceSimulation({
         </div>
 
         <button className="btn btn-primary" onClick={handleStartRace} style={{ alignSelf: 'center', minWidth: '200px' }}>
-          🚥 Alinhar no Grid e Correr
+          <span className="btn-content">Alinhar no Grid e Correr</span>
         </button>
       </div>
     );
@@ -942,7 +945,7 @@ export default function RaceSimulation({
 
           {podium[0] && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: '1.5rem', marginBottom: '0.2rem' }}>👑</span>
+              <span className="synergy-badge" style={{ fontSize: '0.65rem', marginBottom: '0.4rem', padding: '0.1rem 0.4rem' }}>VENCEDOR</span>
               <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'var(--yellow-neon)', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '110px' }}>{podium[0].name}</div>
               <div style={{
                 background: 'linear-gradient(to top, #9a780b, #d4af37)',
@@ -1023,7 +1026,10 @@ export default function RaceSimulation({
                   }}
                 >
                   <td className="text-numeric" style={{ padding: '0.5rem 1rem', fontWeight: 'bold' }}>{idx + 1}</td>
-                  <td>{drv.name} {drv.isPlayer && '★'}</td>
+                  <td style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>{drv.name}</span>
+                    {drv.isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
+                  </td>
                   <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
                   <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '1rem' }}>
                     {drv.dNF ? (
@@ -1041,7 +1047,7 @@ export default function RaceSimulation({
         </div>
 
         <button className="btn btn-primary" onClick={handleQuickFinish} style={{ alignSelf: 'center', minWidth: '220px' }}>
-          Voltar para o Campeonato
+          <span className="btn-content">Voltar para o Campeonato</span>
         </button>
       </div>
     );
@@ -1070,16 +1076,16 @@ export default function RaceSimulation({
             <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span>GP DO {track.country.toUpperCase()}</span>
               {weather === 'chuva' ? (
-                <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>🌧️ CHUVA</span>
+                <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>CHUVA</span>
               ) : (
-                <span style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>☀️ SECO</span>
+                <span style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>SECO</span>
               )}
 
               {safetyCarStatus === 'sc' && (
-                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--f1-red)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>🚨 SAFETY CAR</span>
+                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--f1-red)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>SAFETY CAR</span>
               )}
               {safetyCarStatus === 'vsc' && (
-                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>⚠️ VSC</span>
+                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>VSC</span>
               )}
             </h2>
             <p style={{ color: '#8a92a6', fontSize: '0.85rem', marginTop: '0.1rem' }}>
@@ -1095,7 +1101,7 @@ export default function RaceSimulation({
                   onClick={togglePlay}
                   style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
                 >
-                  {isPlaying ? '⏸️ Pausar' : '▶️ Auto-Play'}
+                  <span className="btn-content">{isPlaying ? 'PAUSAR' : 'AUTO-PLAY'}</span>
                 </button>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button 
@@ -1104,7 +1110,7 @@ export default function RaceSimulation({
                     disabled={isPlaying}
                     style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
                   >
-                    ➡️ Próx. Volta
+                    <span className="btn-content">PRÓX. VOLTA</span>
                   </button>
                   {!isPlaying && (
                     <span style={{ fontSize: '0.65rem', color: '#8a92a6', marginTop: '0.25rem', opacity: 0.8 }}>
@@ -1120,13 +1126,13 @@ export default function RaceSimulation({
         {/* 3-Column Grid for Positions, Radio/Telemetry, and Controls */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '1.25rem'
         }}>
           {/* COLUMN 1: Live Positions */}
           <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '520px' }}>
             <h3 className="text-numeric" style={{ fontSize: '0.95rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem' }}>
-              📊 POSIÇÕES DO GRID
+              POSIÇÕES DO GRID
             </h3>
 
             {/* Progress tracks for top cars */}
@@ -1146,7 +1152,7 @@ export default function RaceSimulation({
                     )}
                     {drv.dNF && (
                       <div style={{ color: 'var(--f1-red)', fontSize: '0.7rem', paddingLeft: '1rem', lineHeight: '32px', fontWeight: 'bold' }}>
-                        💥 DNF
+                        DNF
                       </div>
                     )}
                   </div>
@@ -1291,9 +1297,9 @@ export default function RaceSimulation({
 
             {/* Radio status banner */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+              <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
                 <span className="text-numeric" style={{ fontSize: '0.8rem', color: '#ff1801', fontWeight: 900, letterSpacing: '1px' }}>
-                  📻 PIT WALL RADIO
+                  PIT WALL RADIO
                 </span>
                 
                 {/* Pulsing signal LED */}
@@ -1347,21 +1353,21 @@ export default function RaceSimulation({
                 let color = '#d2d6dd';
                 let weight = 'normal';
 
-                if (line.includes('🚨') || line.includes('VSC') || line.includes('SAFETY CAR')) {
+                if (line.includes('[REGIME DE SC]') || line.includes('[RÁDIO: SC]') || line.includes('VSC') || line.includes('SAFETY CAR')) {
                   color = 'var(--yellow-neon)';
                   weight = 'bold';
-                } else if (line.includes('🌧️') || line.includes('CHOVER')) {
+                } else if (line.includes('[CLIMA: CHUVA]') || line.includes('CHOVER')) {
                   color = 'var(--blue-neon)';
                   weight = 'bold';
-                } else if (line.includes('💥') || line.includes('Abandono') || line.includes('FORA')) {
+                } else if (line.includes('[INCIDENTE]') || line.includes('[QUEBRA]') || line.includes('Abandono') || line.includes('FORA') || line.includes('DNF')) {
                   color = 'var(--f1-red)';
                   weight = 'bold';
-                } else if (line.includes('🔧') || line.includes('Pitstop') || line.includes('BOX')) {
+                } else if (line.includes('[BOX]') || line.includes('[RÁDIO: BOX]') || line.includes('Pitstop') || line.includes('BOX')) {
                   color = 'var(--green-neon)';
-                } else if (line.includes('🏁')) {
-                  color = '#fff';
+                } else if (line.includes('[CRONÔMETRO]')) {
+                  color = 'var(--text-bright)';
                   weight = 'bold';
-                } else if (line.includes('🔥') || line.includes('SUPERAQUECENDO')) {
+                } else if (line.includes('[AVISO]') || line.includes('SUPERAQUECENDO')) {
                   color = '#ff6c00';
                   weight = 'bold';
                 }
@@ -1386,7 +1392,7 @@ export default function RaceSimulation({
               textAlign: 'center',
               lineHeight: '1.3'
             }}>
-              <span>🎙️ Pressione <strong>Espaço</strong> ou <strong>Enter</strong> na pista seca para simular o próximo giro de cronômetro.</span>
+              <span>Pressione <strong>Espaço</strong> ou <strong>Enter</strong> na pista seca para simular o próximo giro de cronômetro.</span>
             </div>
           </div>
 
@@ -1424,7 +1430,7 @@ export default function RaceSimulation({
 
                 {d1Overheating && (
                   <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
-                    ⚠️ ALERTA: Motor superaquecendo! Mude p/ Econômica!
+                    ALERTA: Motor superaquecendo! Mude para Econômica!
                   </div>
                 )}
 
@@ -1543,7 +1549,7 @@ export default function RaceSimulation({
 
                 {d2Overheating && (
                   <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
-                    ⚠️ ALERTA: Motor superaquecendo! Mude p/ Econômica!
+                    ALERTA: Motor superaquecendo! Mude para Econômica!
                   </div>
                 )}
 

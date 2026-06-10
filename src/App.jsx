@@ -11,6 +11,21 @@ export default function App() {
   const [screen, setScreen] = useState('menu'); // 'menu', 'draft', 'season', 'race'
   const [gameMode, setGameMode] = useState('classic'); // 'classic', 'almanac'
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
+
+  // Apply theme to body
+  React.useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
   
   // Player's drafted team
   const [team, setTeam] = useState({
@@ -226,7 +241,7 @@ export default function App() {
                   onClick={() => handleStartGame('classic')}
                   style={{ width: '100%', fontSize: '0.95rem' }}
                 >
-                  🎮 Modo Clássico (Ver Atributos)
+                  <span className="btn-content">Modo Clássico (Ver Atributos)</span>
                 </button>
                 <button 
                   className="btn btn-secondary" 
@@ -238,7 +253,7 @@ export default function App() {
                     color: 'var(--tier-legendary)'
                   }}
                 >
-                  📖 Modo Almanaque (Ocular Stats)
+                  <span className="btn-content">Modo Almanaque (Ocular Stats)</span>
                 </button>
                 
                 <button 
@@ -252,7 +267,7 @@ export default function App() {
                     color: 'var(--green-neon)'
                   }}
                 >
-                  ☕ Apoiar o Jogo (PIX)
+                  <span className="btn-content">Apoiar o Jogo (PIX)</span>
                 </button>
               </div>
 
@@ -346,6 +361,16 @@ export default function App() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           <button 
+            className="theme-toggle" 
+            onClick={toggleTheme}
+            title="Alternar Tema"
+          >
+            <span className="theme-toggle-content">
+              {theme === 'light' ? 'ESCURO' : 'CLARO'}
+            </span>
+          </button>
+
+          <button 
             className="btn" 
             onClick={() => setIsSupportOpen(true)}
             style={{ 
@@ -357,7 +382,7 @@ export default function App() {
               background: 'rgba(255, 202, 0, 0.05)'
             }}
           >
-            ☕ Apoiar (PIX)
+            <span className="btn-content">Apoiar (PIX)</span>
           </button>
           
           {screen !== 'menu' && team.driver1 && (

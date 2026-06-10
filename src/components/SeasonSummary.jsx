@@ -72,21 +72,21 @@ export default function SeasonSummary({
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('drivers')}
             >
-              🏆 Campeonato de Pilotos
+              <span className="btn-content">Pilotos</span>
             </button>
             <button 
               className={`btn ${activeTab === 'constructors' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('constructors')}
             >
-              🏭 Campeonato de Construtores
+              <span className="btn-content">Construtores</span>
             </button>
             <button 
               className={`btn ${activeTab === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('calendar')}
             >
-              📅 Resultados / Calendário
+              <span className="btn-content">Calendário &amp; Resultados</span>
             </button>
           </div>
 
@@ -117,8 +117,9 @@ export default function SeasonSummary({
                         }}
                       >
                         <td className="text-numeric" style={{ padding: '0.75rem 0', fontWeight: 'bold' }}>{idx + 1}</td>
-                        <td>
-                          {drv.name} {isPlayer && '★'}
+                        <td style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span>{drv.name}</span>
+                          {isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
                         </td>
                         <td style={{ color: isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
                         <td className="text-numeric" style={{ textAlign: 'right' }}>{drv.wins}</td>
@@ -157,7 +158,10 @@ export default function SeasonSummary({
                         }}
                       >
                         <td className="text-numeric" style={{ padding: '0.75rem 0', fontWeight: 'bold' }}>{idx + 1}</td>
-                        <td>{cst.name} {isPlayer && '★'}</td>
+                        <td style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span>{cst.name}</span>
+                          {isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
+                        </td>
                         <td className="text-numeric" style={{ textAlign: 'right' }}>{cst.wins}</td>
                         <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '0.5rem', fontWeight: 'bold' }}>{cst.points}</td>
                       </tr>
@@ -233,7 +237,7 @@ export default function SeasonSummary({
             {isFinished ? (
               <div>
                 <h3 className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '1.4rem', marginBottom: '0.5rem' }}>
-                  {isPerfectSeason ? '🏆 DESAFIO 24a0 COMPLETADO! 🏆' : 'Temporada Encerrada!'}
+                  {isPerfectSeason ? 'DESAFIO 24a0 COMPLETADO!' : 'Temporada Encerrada!'}
                 </h3>
                 
                 {isPerfectSeason ? (
@@ -266,7 +270,7 @@ export default function SeasonSummary({
                   onClick={onRestartGame}
                   style={{ width: '100%', marginTop: '1rem' }}
                 >
-                  🏁 Jogar Novamente
+                  <span className="btn-content">Jogar Novamente</span>
                 </button>
               </div>
             ) : (
@@ -300,7 +304,7 @@ export default function SeasonSummary({
                     onClick={() => onStartRace(true)}
                     style={{ width: '100%' }}
                   >
-                    🎮 Simulação Interativa (Boxes/Pneus)
+                    <span className="btn-content">Simulação Interativa (Boxes/Pneus)</span>
                   </button>
                   
                   {/* Quick race simulation */}
@@ -309,7 +313,7 @@ export default function SeasonSummary({
                     onClick={() => onStartRace(false)}
                     style={{ width: '100%' }}
                   >
-                    ⚡ Simulação Rápida (1-Clique)
+                    <span className="btn-content">Simulação Rápida (1-Clique)</span>
                   </button>
                 </div>
               </div>

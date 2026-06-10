@@ -176,7 +176,7 @@ export default function TeamPreview({ team }) {
         color: '#fff',
         letterSpacing: '1px'
       }}>
-        🏎️ STATUS DA EQUIPE
+        STATUS DA EQUIPE
       </h3>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -194,7 +194,7 @@ export default function TeamPreview({ team }) {
         paddingTop: '1rem'
       }}>
         <h4 style={{ fontSize: '0.85rem', color: '#a0aab2', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          ✨ Sinergias Ativas ({activeSynergies.length})
+          Sinergias Ativas ({activeSynergies.length})
         </h4>
         
         {activeSynergies.length === 0 ? (
