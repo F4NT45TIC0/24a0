@@ -80,6 +80,28 @@ export default function App() {
     }
   }, [introPhase]);
 
+  // Sync audio play position with video play position to avoid any delay/drift
+  useEffect(() => {
+    let interval;
+    if (introPhase === 'video') {
+      interval = setInterval(() => {
+        if (videoRef.current && audioRef.current && !videoRef.current.paused) {
+          const videoTime = videoRef.current.currentTime;
+          const audioTime = audioRef.current.currentTime;
+          const diff = Math.abs(audioTime - videoTime);
+          
+          // If the audio is out of sync by more than 150ms, snap it to the video time
+          if (diff > 0.15) {
+            audioRef.current.currentTime = videoTime;
+          }
+        }
+      }, 150); // check every 150ms
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [introPhase]);
+
   const handleSkipIntro = () => {
     setIntroPhase('shutting-down');
     setTimeout(() => {
@@ -621,7 +643,7 @@ export default function App() {
                 type="range" 
                 min="0" 
                 max="1" 
-                step="0.05" 
+                step="0.01" 
                 value={volume} 
                 onChange={handleVolumeChange}
                 title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
