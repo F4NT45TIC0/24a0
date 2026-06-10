@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Synergy calculation helper
-export function calculateSynergies(team) {
+export function calculateSynergies(team, lang = 'pt') {
   const { driver1, driver2, chassis, engine, principal } = team;
   const activeSynergies = [];
   const bonuses = {
@@ -15,8 +15,10 @@ export function calculateSynergies(team) {
   if (driver1 && chassis && driver1.historicalTeams?.includes(chassis.constructorName)) {
     activeSynergies.push({
       id: "d1_chassis",
-      name: `Sinergia: ${driver1.name} + ${chassis.constructorName}`,
-      desc: `Aceleração extra (+5 de velocidade para Piloto 1) devido à afinidade histórica com o chassi.`,
+      name: lang === 'pt' ? `Sinergia: ${driver1.name} + ${chassis.constructorName}` : `Synergy: ${driver1.name} + ${chassis.constructorName}`,
+      desc: lang === 'pt' 
+        ? `Aceleração extra (+5 de velocidade para Piloto 1) devido à afinidade histórica com o chassi.` 
+        : `Extra acceleration (+5 speed for Driver 1) due to historical affinity with the chassis.`,
       type: "driver1"
     });
     bonuses.driver1Speed += 5;
@@ -26,8 +28,10 @@ export function calculateSynergies(team) {
   if (driver2 && chassis && driver2.historicalTeams?.includes(chassis.constructorName)) {
     activeSynergies.push({
       id: "d2_chassis",
-      name: `Sinergia: ${driver2.name} + ${chassis.constructorName}`,
-      desc: `Aceleração extra (+5 de velocidade para Piloto 2) devido à afinidade histórica com o chassi.`,
+      name: lang === 'pt' ? `Sinergia: ${driver2.name} + ${chassis.constructorName}` : `Synergy: ${driver2.name} + ${chassis.constructorName}`,
+      desc: lang === 'pt' 
+        ? `Aceleração extra (+5 de velocidade para Piloto 2) devido à afinidade histórica com o chassi.` 
+        : `Extra acceleration (+5 speed for Driver 2) due to historical affinity with the chassis.`,
       type: "driver2"
     });
     bonuses.driver2Speed += 5;
@@ -55,8 +59,10 @@ export function calculateSynergies(team) {
     if (isHarmonious) {
       activeSynergies.push({
         id: "car_engine",
-        name: `Sinergia: Chassi ${cName} + Motor ${eName}`,
-        desc: `Harmonia perfeita (+10 de confiabilidade global) reduzindo chances de quebra de motor.`,
+        name: lang === 'pt' ? `Sinergia: Chassi ${cName} + Motor ${eName}` : `Synergy: Chassis ${cName} + Engine ${eName}`,
+        desc: lang === 'pt' 
+          ? `Harmonia perfeita (+10 de confiabilidade global) reduzindo chances de quebra de motor.` 
+          : `Perfect harmony (+10 global reliability) reducing engine failure chance.`,
         type: "car"
       });
       bonuses.carReliability += 10;
@@ -87,8 +93,10 @@ export function calculateSynergies(team) {
     if (isLeader) {
       activeSynergies.push({
         id: "d1_principal",
-        name: `Liderança: ${driver1.name} + ${principal.name}`,
-        desc: `Comunicação ideal (+10 de estratégia) otimizando pit stops e decisões na chuva.`,
+        name: lang === 'pt' ? `Liderança: ${driver1.name} + ${principal.name}` : `Leadership: ${driver1.name} + ${principal.name}`,
+        desc: lang === 'pt' 
+          ? `Comunicação ideal (+10 de estratégia) otimizando pit stops e decisões na chuva.` 
+          : `Ideal communication (+10 strategy) optimizing pit stops and decisions in wet conditions.`,
         type: "leadership"
       });
       bonuses.teamStrategy += 10;
@@ -98,19 +106,42 @@ export function calculateSynergies(team) {
   return { activeSynergies, bonuses };
 }
 
-export default function TeamPreview({ team }) {
-  const { driver1, driver2, chassis, engine, principal } = team;
-  const { activeSynergies } = calculateSynergies(team);
+export default function TeamPreview({ team, t, lang }) {
+  // Safe fallback if t is not passed
+  if (!t) {
+    t = {
+      teamStatusTitle: "STATUS DA EQUIPE",
+      synergyActiveTitle: "Sinergias Ativas",
+      noSynergyMsg: "Nenhuma sinergia ativa...",
+      pending: "Pendente",
+      rating: "Rating",
+      yearLabel: "Ano"
+    };
+  }
 
-  const renderSlot = (title, item, type) => {
+  const getSlotLabel = (key) => {
+    switch(key) {
+      case 'driver1': return lang === 'en' ? 'Driver 1' : 'Piloto 1';
+      case 'driver2': return lang === 'en' ? 'Driver 2' : 'Piloto 2';
+      case 'chassis': return lang === 'en' ? 'Chassis' : 'Chassi';
+      case 'engine': return lang === 'en' ? 'Engine' : 'Motor';
+      case 'principal': return lang === 'en' ? 'Team Principal' : 'Chefe de Equipe';
+      default: return '';
+    }
+  };
+  const { driver1, driver2, chassis, engine, principal } = team;
+  const { activeSynergies } = calculateSynergies(team, lang);
+
+  const renderSlot = (slotKey, item) => {
+    const title = getSlotLabel(slotKey);
     if (!item) {
       return (
         <div style={{
-          border: '1px dashed rgba(255, 255, 255, 0.15)',
+          border: '1px dashed var(--border-color-default)',
           borderRadius: '8px',
           padding: '1rem',
           textAlign: 'center',
-          color: '#8a92a6',
+          color: 'var(--text-muted)',
           fontSize: '0.9rem',
           background: 'rgba(255,255,255,0.01)',
           minHeight: '80px',
@@ -118,16 +149,16 @@ export default function TeamPreview({ team }) {
           flexDirection: 'column',
           justifyContent: 'center'
         }}>
-          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.3)' }}>{title}</span>
-          <span style={{ fontWeight: 600, marginTop: '0.2rem' }}>Pendente</span>
+          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', opacity: 0.8 }}>{title}</span>
+          <span style={{ fontWeight: 600, marginTop: '0.2rem' }}>{t.pending}</span>
         </div>
       );
     }
 
     return (
       <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--bg-dark)',
+        border: '1px solid var(--border-color-default)',
         borderRadius: '8px',
         padding: '0.8rem 1rem',
         display: 'flex',
@@ -145,11 +176,11 @@ export default function TeamPreview({ team }) {
           }}>
             {title}
           </span>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0.1rem 0 0 0', color: '#fff' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0.1rem 0 0 0', color: 'var(--text-bright)' }}>
             {item.name}
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#8a92a6' }}>
-            {item.year ? `Ano: ${item.year}` : item.era || ''}
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            {item.year ? `${t.yearLabel}: ${item.year}` : item.era || ''}
           </span>
         </div>
 
@@ -161,7 +192,7 @@ export default function TeamPreview({ team }) {
           }}>
             {item.rating || '—'}
           </span>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: '#8a92a6', fontWeight: 800 }}>Rating</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 800 }}>{t.rating}</div>
         </div>
       </div>
     );
@@ -171,35 +202,35 @@ export default function TeamPreview({ team }) {
     <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <h3 className="text-numeric" style={{ 
         fontSize: '1.1rem', 
-        borderBottom: '1px solid rgba(255,255,255,0.08)', 
+        borderBottom: '1px solid var(--border-color-default)', 
         paddingBottom: '0.5rem', 
-        color: '#fff',
+        color: 'var(--text-bright)',
         letterSpacing: '1px'
       }}>
-        STATUS DA EQUIPE
+        {t.teamStatusTitle}
       </h3>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {renderSlot("Piloto 1", driver1, "driver1")}
-        {renderSlot("Piloto 2", driver2, "driver2")}
-        {renderSlot("Chassi", chassis, "chassis")}
-        {renderSlot("Motor", engine, "engine")}
-        {renderSlot("Chefe de Equipe", principal, "principal")}
+        {renderSlot("driver1", driver1)}
+        {renderSlot("driver2", driver2)}
+        {renderSlot("chassis", chassis)}
+        {renderSlot("engine", engine)}
+        {renderSlot("principal", principal)}
       </div>
 
       {/* Synergies display */}
       <div style={{ 
         marginTop: '0.5rem',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderTop: '1px solid var(--border-color-default)',
         paddingTop: '1rem'
       }}>
-        <h4 style={{ fontSize: '0.85rem', color: '#a0aab2', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Sinergias Ativas ({activeSynergies.length})
+        <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {t.synergyActiveTitle} ({activeSynergies.length})
         </h4>
         
         {activeSynergies.length === 0 ? (
-          <p style={{ fontSize: '0.8rem', color: '#6c757d', fontStyle: 'italic' }}>
-            Nenhuma sinergia ativa. Pilotos, carros e chefes compatíveis historicamente dão bônus na corrida!
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            {t.noSynergyMsg}
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -216,7 +247,7 @@ export default function TeamPreview({ team }) {
                 <div className="synergy-badge" style={{ marginBottom: '0.25rem' }}>
                   {syn.name}
                 </div>
-                <p style={{ fontSize: '0.75rem', color: '#c2c8d4', margin: 0, lineHeight: 1.25 }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-card-desc)', margin: 0, lineHeight: 1.25 }}>
                   {syn.desc}
                 </p>
               </div>

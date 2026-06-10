@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TeamPreview from './TeamPreview';
+import { trackLayouts } from '../data/trackLayouts';
 
 export default function SeasonSummary({ 
   team, 
@@ -8,9 +9,12 @@ export default function SeasonSummary({
   standings, 
   history, 
   onStartRace, 
-  onRestartGame 
+  onRestartGame,
+  t,
+  lang
 }) {
   const [activeTab, setActiveTab] = useState('drivers'); // 'drivers', 'constructors', 'calendar'
+  const [selectedTrack, setSelectedTrack] = useState(null);
   
   const currentRace = tracks[currentRaceIndex];
   const isFinished = currentRaceIndex >= tracks.length;
@@ -47,12 +51,12 @@ export default function SeasonSummary({
       {/* Top Banner */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1 className="glow-text" style={{ fontSize: '2.5rem', color: 'var(--f1-red)', fontWeight: 900 }}>
-          {isFinished ? 'FIM DA TEMPORADA' : `GP DO ${currentRace.country.toUpperCase()}`}
+          {isFinished ? t.seasonFinished.toUpperCase() : (lang === 'pt' ? `GP DO ${currentRace.country.toUpperCase()}` : `GP OF ${currentRace.country.toUpperCase()}`)}
         </h1>
-        <p style={{ color: '#8a92a6', fontSize: '1rem', marginTop: '0.25rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '0.25rem' }}>
           {isFinished 
-            ? 'A temporada de 24 corridas foi concluída. Veja os campeões!' 
-            : `Corrida ${currentRaceIndex + 1} de 24 • Próxima parada: ${currentRace.name}`}
+            ? (lang === 'pt' ? 'A temporada de 24 corridas foi concluída. Veja os campeões!' : 'The 24-race season has concluded. See the champions!') 
+            : (lang === 'pt' ? `Corrida ${currentRaceIndex + 1} de 24 • Próxima parada: ${currentRace.name}` : `Race ${currentRaceIndex + 1} of 24 • Next stop: ${currentRace.name}`)}
         </p>
       </div>
 
@@ -62,7 +66,7 @@ export default function SeasonSummary({
           {/* Tabs header */}
           <div style={{ 
             display: 'flex', 
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderBottom: '1px solid var(--border-color-default)',
             marginBottom: '1rem',
             paddingBottom: '0.5rem',
             gap: '1rem'
@@ -72,21 +76,21 @@ export default function SeasonSummary({
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('drivers')}
             >
-              <span className="btn-content">Pilotos</span>
+              <span className="btn-content">{t.driversStandings}</span>
             </button>
             <button 
               className={`btn ${activeTab === 'constructors' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('constructors')}
             >
-              <span className="btn-content">Construtores</span>
+              <span className="btn-content">{t.teamsStandings}</span>
             </button>
             <button 
               className={`btn ${activeTab === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               onClick={() => setActiveTab('calendar')}
             >
-              <span className="btn-content">Calendário &amp; Resultados</span>
+              <span className="btn-content">{t.calendarResults}</span>
             </button>
           </div>
 
@@ -95,12 +99,12 @@ export default function SeasonSummary({
             <div className="custom-scroll" style={{ flex: 1, maxHeight: '420px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left' }}>
-                    <th style={{ padding: '0.5rem 0' }}>Pos</th>
-                    <th>Piloto</th>
-                    <th>Equipe</th>
-                    <th style={{ textAlign: 'right' }}>Vitórias</th>
-                    <th style={{ textAlign: 'right', paddingRight: '0.5rem' }}>Pontos</th>
+                  <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                    <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>{t.pos}</th>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.driver}</th>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.team}</th>
+                    <th style={{ textAlign: 'right', color: 'var(--text-muted)' }}>{t.wins}</th>
+                    <th style={{ textAlign: 'right', paddingRight: '0.5rem', color: 'var(--text-muted)' }}>{t.points}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -110,9 +114,9 @@ export default function SeasonSummary({
                       <tr 
                         key={drv.id} 
                         style={{ 
-                          borderBottom: '1px solid rgba(255,255,255,0.04)',
+                          borderBottom: '1px solid var(--border-color-default)',
                           background: isPlayer ? 'rgba(0, 255, 135, 0.05)' : 'transparent',
-                          color: isPlayer ? 'var(--green-neon)' : '#fff',
+                          color: isPlayer ? 'var(--green-neon)' : 'var(--text-main)',
                           fontWeight: isPlayer ? '700' : 'normal'
                         }}
                       >
@@ -137,11 +141,11 @@ export default function SeasonSummary({
             <div className="custom-scroll" style={{ flex: 1, maxHeight: '420px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left' }}>
-                    <th style={{ padding: '0.5rem 0' }}>Pos</th>
-                    <th>Equipe</th>
-                    <th style={{ textAlign: 'right' }}>Vitórias</th>
-                    <th style={{ textAlign: 'right', paddingRight: '0.5rem' }}>Pontos</th>
+                  <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                    <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>{t.pos}</th>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.team}</th>
+                    <th style={{ textAlign: 'right', color: 'var(--text-muted)' }}>{t.wins}</th>
+                    <th style={{ textAlign: 'right', paddingRight: '0.5rem', color: 'var(--text-muted)' }}>{t.points}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -151,9 +155,9 @@ export default function SeasonSummary({
                       <tr 
                         key={cst.id} 
                         style={{ 
-                          borderBottom: '1px solid rgba(255,255,255,0.04)',
+                          borderBottom: '1px solid var(--border-color-default)',
                           background: isPlayer ? 'rgba(0, 255, 135, 0.05)' : 'transparent',
-                          color: isPlayer ? 'var(--green-neon)' : '#fff',
+                          color: isPlayer ? 'var(--green-neon)' : 'var(--text-main)',
                           fontWeight: isPlayer ? '700' : 'normal'
                         }}
                       >
@@ -184,42 +188,45 @@ export default function SeasonSummary({
                   return (
                     <div 
                       key={track.id}
+                      onClick={() => setSelectedTrack(track)}
                       style={{
                         background: isCurrent ? 'rgba(255, 24, 1, 0.05)' : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${isCurrent ? 'var(--f1-red)' : isCompleted ? 'rgba(0, 255, 135, 0.2)' : 'rgba(255,255,255,0.05)'}`,
+                        border: `1px solid ${isCurrent ? 'var(--f1-red)' : isCompleted ? 'rgba(0, 255, 135, 0.2)' : 'var(--border-color-default)'}`,
                         borderRadius: '8px',
                         padding: '0.6rem 0.8rem',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        transition: 'var(--transition-smooth)'
                       }}
                     >
                       <div>
                         <span className="text-numeric" style={{ 
                           fontSize: '0.75rem', 
-                          color: isCurrent ? 'var(--f1-red)' : isCompleted ? 'var(--green-neon)' : '#8a92a6',
+                          color: isCurrent ? 'var(--f1-red)' : isCompleted ? 'var(--green-neon)' : 'var(--text-muted)',
                           fontWeight: 'bold',
                           marginRight: '0.5rem'
                         }}>
                           GP {idx + 1}
                         </span>
-                        <strong style={{ fontSize: '0.95rem' }}>{track.name} ({track.country})</strong>
+                        <strong style={{ fontSize: '0.95rem', color: 'var(--text-bright)' }}>{track.name} ({track.country})</strong>
                       </div>
                       
                       <div>
                         {isCompleted && result ? (
                           <div style={{ fontSize: '0.8rem', textAlign: 'right' }}>
-                            <span style={{ color: '#8a92a6' }}>Vencedor: </span>
+                            <span style={{ color: 'var(--text-muted)' }}>{t.winner}: </span>
                             <strong style={{ 
-                              color: result.results[0].id.startsWith('player') ? 'var(--green-neon)' : '#fff' 
+                              color: result.results[0].id.startsWith('player') ? 'var(--green-neon)' : 'var(--text-bright)' 
                             }}>
                               {result.results[0].name}
                             </strong>
                           </div>
                         ) : isCurrent ? (
-                          <span style={{ fontSize: '0.8rem', color: 'var(--f1-red)', fontWeight: 'bold' }}>A SEGUIR</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--f1-red)', fontWeight: 'bold' }}>{t.nextLabel}</span>
                         ) : (
-                          <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>Bloqueado</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.lockedLabel}</span>
                         )}
                       </div>
                     </div>
@@ -233,34 +240,36 @@ export default function SeasonSummary({
         {/* Right Column: Actions / Team Preview / End Season */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Next Race / Final Campaign Actions Panel */}
-          <div className="panel" style={{ textAlign: 'center', background: 'linear-gradient(to bottom, var(--bg-card), rgba(15,17,21,0.9))' }}>
+          <div className="panel" style={{ textAlign: 'center', background: 'linear-gradient(to bottom, var(--bg-card), rgba(15,17,21,0.05))' }}>
             {isFinished ? (
               <div>
                 <h3 className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '1.4rem', marginBottom: '0.5rem' }}>
-                  {isPerfectSeason ? 'DESAFIO 24a0 COMPLETADO!' : 'Temporada Encerrada!'}
+                  {isPerfectSeason ? t.perfectSeasonTitle : t.seasonFinished}
                 </h3>
                 
                 {isPerfectSeason ? (
                   <div style={{ margin: '1.5rem 0' }}>
                     <p style={{ color: 'var(--green-neon)', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                      INCRÍVEL! 24 Vitórias em 24 Corridas!
+                      {t.perfectSeasonMsg.split('! ')[0]}!
                     </p>
-                    <p style={{ color: '#8a92a6', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                      Você montou a equipe dos sonhos definitiva e dominou a história do automobilismo!
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      {t.perfectSeasonMsg.split('! ')[1]}
                     </p>
                   </div>
                 ) : (
                   <div style={{ margin: '1.5rem 0', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.95rem' }}>
-                    <p style={{ color: '#c2c8d4' }}>
-                      Sua equipe conquistou <strong style={{ color: 'var(--green-neon)' }}>{teamWins} vitórias</strong> nesta temporada!
+                    <p style={{ color: 'var(--text-card-desc)' }}>
+                      {t.teamWinsMsg.replace('{wins}', teamWins)}
                     </p>
-                    <p style={{ color: '#8a92a6', fontSize: '0.85rem' }}>
-                      Piloto 1 ({team.driver1.name}): {p1Wins} vitórias.
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      {t.p1WinsLabel.replace('{name}', team.driver1.name).replace('{wins}', p1Wins)}
                       <br/>
-                      Piloto 2 ({team.driver2.name}): {p2Wins} vitórias.
+                      {t.p2WinsLabel.replace('{name}', team.driver2.name).replace('{wins}', p2Wins)}
                     </p>
-                    <p style={{ color: '#8a92a6', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                      Classificação Final do Construtor: <strong>Posição {standings.constructors.findIndex(c => c.id === 'player_team') + 1}</strong> com {playerConstructorStanding?.points} pontos.
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                      {t.finalStandingLabel
+                        .replace('{pos}', standings.constructors.findIndex(c => c.id === 'player_team') + 1)
+                        .replace('{points}', playerConstructorStanding?.points || 0)}
                     </p>
                   </div>
                 )}
@@ -270,7 +279,7 @@ export default function SeasonSummary({
                   onClick={onRestartGame}
                   style={{ width: '100%', marginTop: '1rem' }}
                 >
-                  <span className="btn-content">Jogar Novamente</span>
+                  <span className="btn-content">{t.playAgain}</span>
                 </button>
               </div>
             ) : (
@@ -282,18 +291,18 @@ export default function SeasonSummary({
                   letterSpacing: '1.5px',
                   textTransform: 'uppercase'
                 }}>
-                  Próxima Etapa
+                  {t.nextStage}
                 </span>
                 
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: '0.2rem 0' }}>
-                  GP do {currentRace.country}
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-bright)', margin: '0.2rem 0' }}>
+                  GP {lang === 'pt' ? 'do' : 'of'} {currentRace.country}
                 </h3>
                 
-                <p style={{ fontSize: '0.8rem', color: '#8a92a6', margin: '0.5rem 0 1.5rem 0', lineHeight: 1.3 }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0', lineHeight: 1.3 }}>
                   {currentRace.description}
                   <br/>
-                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
-                    Exigência: ⚙️ Motor {(currentRace.characteristics.powerWeight * 100).toFixed(0)}% | 🏎️ Aero {(currentRace.characteristics.downforceWeight * 100).toFixed(0)}%
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.8 }}>
+                    {t.requirement}: [{t.motor.toUpperCase()}] {(currentRace.characteristics.powerWeight * 100).toFixed(0)}% | [{t.aero.toUpperCase()}] {(currentRace.characteristics.downforceWeight * 100).toFixed(0)}%
                   </span>
                 </p>
 
@@ -304,7 +313,7 @@ export default function SeasonSummary({
                     onClick={() => onStartRace(true)}
                     style={{ width: '100%' }}
                   >
-                    <span className="btn-content">Simulação Interativa (Boxes/Pneus)</span>
+                    <span className="btn-content">{t.interactiveSimBtn}</span>
                   </button>
                   
                   {/* Quick race simulation */}
@@ -313,7 +322,7 @@ export default function SeasonSummary({
                     onClick={() => onStartRace(false)}
                     style={{ width: '100%' }}
                   >
-                    <span className="btn-content">Simulação Rápida (1-Clique)</span>
+                    <span className="btn-content">{t.quickSimBtn}</span>
                   </button>
                 </div>
               </div>
@@ -321,9 +330,79 @@ export default function SeasonSummary({
           </div>
 
           {/* Current team stats preview */}
-          <TeamPreview team={team} />
+          <TeamPreview team={team} t={t} lang={lang} />
         </div>
       </div>
+
+      {/* Track Map modal */}
+      {selectedTrack && (
+        <div className="modal-overlay" style={{ zIndex: 110 }}>
+          <div className="modal-content animate-fadeIn" style={{ maxWidth: '500px', border: '1px solid var(--f1-red)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color-default)', paddingBottom: '0.5rem' }}>
+              <h2 className="text-numeric" style={{ color: 'var(--text-bright)', fontSize: '1.4rem', fontWeight: 800 }}>
+                {selectedTrack.name} ({selectedTrack.country})
+              </h2>
+              <span className="text-numeric" style={{ color: 'var(--f1-red)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                {selectedTrack.laps} {lang === 'pt' ? 'Voltas' : 'Laps'}
+              </span>
+            </div>
+
+            {/* SVG Track Layout */}
+            <div style={{ background: 'var(--bg-darker)', borderRadius: '6px', padding: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1.5rem', border: '1px solid var(--border-color-default)' }}>
+              {trackLayouts[selectedTrack.id] ? (
+                <svg 
+                  viewBox={trackLayouts[selectedTrack.id].viewBox} 
+                  style={{ 
+                    width: '100%', 
+                    maxHeight: '200px', 
+                    stroke: 'var(--f1-red)', 
+                    strokeWidth: '4', 
+                    fill: 'none', 
+                    strokeLinecap: 'round', 
+                    strokeLinejoin: 'round',
+                    filter: 'drop-shadow(0 0 8px rgba(225, 6, 0, 0.5))'
+                  }}
+                >
+                  <path d={trackLayouts[selectedTrack.id].path} />
+                </svg>
+              ) : (
+                <div style={{ color: 'var(--text-muted)' }}>[Layout N/A]</div>
+              )}
+            </div>
+
+            {/* Description */}
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-card-desc)', lineHeight: 1.4, marginBottom: '1.5rem', fontStyle: 'italic', borderLeft: '3px solid var(--f1-red)', paddingLeft: '0.75rem' }}>
+              {selectedTrack.description}
+            </p>
+
+            {/* Track attributes */}
+            <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              {t.characteristics}
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              {/* Rain Chance */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{t.rainChance}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>{(selectedTrack.characteristics.rainChance * 100).toFixed(0)}%</strong>
+              </div>
+              {/* Tyre Wear */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{t.tireWearRate}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>{(selectedTrack.characteristics.tireWearRate * 100).toFixed(0)}%</strong>
+              </div>
+              {/* Overtake difficulty */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{t.overtakeDifficulty}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>{(selectedTrack.characteristics.overtakeDifficulty * 100).toFixed(0)}%</strong>
+              </div>
+            </div>
+
+            <button className="btn btn-secondary" onClick={() => setSelectedTrack(null)} style={{ width: '100%' }}>
+              <span className="btn-content">{t.closeBtn}</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

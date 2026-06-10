@@ -13,7 +13,17 @@ const SLOTS = [
   { key: 'principal', label: 'Chefe de Equipe', type: 'principal', db: principals }
 ];
 
-export default function DraftScreen({ gameMode, onDraftComplete }) {
+export default function DraftScreen({ gameMode, onDraftComplete, t, lang }) {
+  const getSlotLabel = (key) => {
+    switch(key) {
+      case 'driver1': return lang === 'pt' ? 'Piloto 1' : 'Driver 1';
+      case 'driver2': return lang === 'pt' ? 'Piloto 2' : 'Driver 2';
+      case 'chassis': return lang === 'pt' ? 'Chassi' : 'Chassis';
+      case 'engine': return lang === 'pt' ? 'Motor' : 'Engine';
+      case 'principal': return lang === 'pt' ? 'Chefe de Equipe' : 'Team Principal';
+      default: return '';
+    }
+  };
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [team, setTeam] = useState({
     driver1: null,
@@ -91,10 +101,10 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
       {/* Header Info */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1 className="glow-text" style={{ fontSize: '2.5rem', color: 'var(--f1-red)', fontWeight: 900 }}>
-          DRAFT DA EQUIPE
+          {t.draftTitle}
         </h1>
-        <p style={{ color: '#8a92a6', fontSize: '1rem', marginTop: '0.25rem' }}>
-          Monte seus recursos para a temporada perfeita 24a0. Modo: <strong style={{ color: '#fff' }}>{gameMode === 'classic' ? 'Clássico' : 'Almanaque'}</strong>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '0.25rem' }}>
+          {t.draftSubtitle} {t.gameModeLabel}: <strong style={{ color: 'var(--text-bright)' }}>{gameMode === 'classic' ? t.classic : t.almanac}</strong>
         </p>
       </div>
 
@@ -106,7 +116,7 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
-              background: 'rgba(0,0,0,0.3)', 
+              background: 'var(--bg-qualifying-header)', 
               borderRadius: '8px', 
               padding: '0.75rem 1rem', 
               marginBottom: '1.5rem' 
@@ -124,13 +134,13 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
                   <div style={{ 
                     fontSize: '0.7rem', 
                     fontWeight: 800, 
-                    color: index === currentSlotIndex ? 'var(--f1-red)' : index < currentSlotIndex ? 'var(--green-neon)' : '#fff',
+                    color: index === currentSlotIndex ? 'var(--f1-red)' : index < currentSlotIndex ? 'var(--green-neon)' : 'var(--text-bright)',
                     textTransform: 'uppercase'
                   }}>
-                    Passo {index + 1}
+                    {t.step} {index + 1}
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginTop: '0.1rem' }}>
-                    {slot.label}
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-bright)', marginTop: '0.1rem' }}>
+                    {getSlotLabel(slot.key)}
                   </div>
                   {index < SLOTS.length - 1 && (
                     <div style={{ 
@@ -147,11 +157,11 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
             </div>
 
             {/* Title for current selection */}
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
-              Selecione seu <span style={{ color: 'var(--f1-red)' }}>{currentSlot.label}</span>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.5rem' }}>
+              {t.selectYour} <span style={{ color: 'var(--f1-red)' }}>{getSlotLabel(currentSlot.key)}</span>
             </h2>
-            <p style={{ color: '#8a92a6', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              Escolha uma das três opções históricas sorteadas abaixo. Você pode queimar um Reroll para gerar novas opções.
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              {t.draftDescription}
             </p>
 
             {/* Cards Grid */}
@@ -176,7 +186,7 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
             alignItems: 'center', 
             marginTop: '2rem',
             paddingTop: '1.5rem',
-            borderTop: '1px solid rgba(255,255,255,0.08)'
+            borderTop: '1px solid var(--border-color-default)'
           }}>
             {/* Reroll info */}
             <div>
@@ -185,7 +195,7 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
                 onClick={handleReroll}
                 disabled={rerolls === 0}
               >
-                <span className="btn-content">Trocar Opções</span>
+                <span className="btn-content">{t.rerollBtn}</span>
               </button>
               <span className="text-numeric" style={{ 
                 marginLeft: '1rem', 
@@ -193,7 +203,7 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
                 color: rerolls > 0 ? 'var(--yellow-neon)' : 'var(--f1-red)',
                 fontWeight: 'bold'
               }}>
-                Rerolls Restantes: {rerolls}
+                {t.rerollsLeft}: {rerolls}
               </span>
             </div>
 
@@ -204,13 +214,13 @@ export default function DraftScreen({ gameMode, onDraftComplete }) {
               disabled={!selectedItem}
               style={{ minWidth: '160px' }}
             >
-              Confirmar Escolha
+              <span className="btn-content">{t.confirmChoice}</span>
             </button>
           </div>
         </div>
 
         {/* Right Side: Current Team Status */}
-        <TeamPreview team={team} />
+        <TeamPreview team={team} t={t} lang={lang} />
       </div>
     </div>
   );

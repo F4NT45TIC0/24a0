@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 
-export default function SupportModal({ isOpen, onClose }) {
+export default function SupportModal({ isOpen, onClose, t, lang }) {
   const [copied, setCopied] = useState(false);
   const pixKey = "363df8c5-402e-400d-aac3-138f23ee58d3"; // Chave aleatória do usuário
 
   if (!isOpen) return null;
+
+  // Safe fallback if t is not passed
+  if (!t) {
+    t = {
+      supportTitle: "APOIE O PROJETO",
+      supportWelcome: "O 24a0 é um projeto gratuito e independente...",
+      pixKeyTitle: "Chave Aleatória PIX",
+      copied: "Copiado!",
+      copy: "Copiar",
+      close: "Fechar"
+    };
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pixKey);
@@ -14,20 +26,19 @@ export default function SupportModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-overlay" style={{ zIndex: 110 }}>
-      <div className="modal-content animate-fadeIn" style={{ maxWidth: '450px', textAlign: 'center' }}>
+      <div className="modal-content animate-fadeIn" style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--border-color-default)' }}>
         <h2 className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '1.5rem', marginBottom: '1rem' }}>
-          APOIE O PROJETO
+          {t.supportTitle}
         </h2>
         
-        <p style={{ fontSize: '0.9rem', color: '#c2c8d4', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-          O <strong>24a0</strong> é um projeto gratuito e independente. 
-          Se você se divertiu jogando e quer nos ajudar a manter o servidor online e a adicionar novas temporadas, considere fazer uma contribuição de qualquer valor!
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-card-desc)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+          {t.supportWelcome}
         </p>
 
         {/* PIX Details */}
         <div style={{
-          background: 'rgba(0,0,0,0.3)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-darker)',
+          border: '1px solid var(--border-color-default)',
           borderRadius: '8px',
           padding: '1rem',
           marginBottom: '1.5rem'
@@ -41,19 +52,19 @@ export default function SupportModal({ isOpen, onClose }) {
             display: 'block',
             marginBottom: '0.5rem'
           }}>
-            Chave Aleatória PIX
+            {t.pixKeyTitle}
           </span>
           
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            background: 'rgba(0,0,0,0.4)',
+            background: 'var(--bg-dark)',
             padding: '0.5rem 0.75rem',
             borderRadius: '6px',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid var(--border-color-default)'
           }}>
-            <code style={{ fontSize: '0.9rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
+            <code style={{ fontSize: '0.9rem', color: 'var(--text-bright)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
               {pixKey}
             </code>
             
@@ -62,13 +73,13 @@ export default function SupportModal({ isOpen, onClose }) {
               onClick={handleCopy}
               style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', minWidth: '80px', textTransform: 'none' }}
             >
-              {copied ? 'Copiado!' : 'Copiar'}
+              <span className="btn-content">{copied ? t.copied : t.copy}</span>
             </button>
           </div>
         </div>
 
         <button className="btn btn-secondary" onClick={onClose} style={{ width: '100%' }}>
-          Fechar
+          <span className="btn-content">{t.close}</span>
         </button>
       </div>
     </div>

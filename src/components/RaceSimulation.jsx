@@ -27,7 +27,10 @@ export default function RaceSimulation({
   team, 
   track, 
   interactive, 
-  onRaceComplete 
+  onRaceComplete,
+  aiGrid = AI_GRID,
+  t,
+  lang
 }) {
   const [phase, setPhase] = useState('lights'); // 'lights', 'qualifying', 'race', 'podium'
   const [lightsCount, setLightsCount] = useState(0);
@@ -150,7 +153,7 @@ export default function RaceSimulation({
     const list = [];
     
     // Add AI drivers
-    AI_GRID.forEach(ai => {
+    aiGrid.forEach(ai => {
       const paceVal = calculateBasePace(ai.speed, ai.speed, ai.reliability, track);
       const qScore = paceVal + (Math.random() * 3 - 1.5);
       list.push({
@@ -830,7 +833,7 @@ export default function RaceSimulation({
     return (
       <div className="panel animate-fadeIn" style={{ textAlign: 'center', padding: '3rem' }}>
         <h2 className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1.8rem', marginBottom: '1.5rem' }}>
-          PREPARANDO A LARGADA...
+          {t.preparingStart}
         </h2>
         
         <div className="lights-container">
@@ -844,7 +847,7 @@ export default function RaceSimulation({
         
         {lightsCount === 5 && (
           <h3 className="flash-effect text-numeric" style={{ color: 'var(--f1-red)', marginTop: '2rem', fontSize: '1.5rem' }}>
-            APAGUEM-SE AS LUZES!
+            {t.lightsOut}
           </h3>
         )}
       </div>
@@ -856,19 +859,19 @@ export default function RaceSimulation({
     return (
       <div className="panel animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ textAlign: 'center' }}>
-          <span className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '0.9rem', letterSpacing: '1px' }}>SESSÃO DE TREINOS</span>
-          <h2 className="text-numeric" style={{ color: '#fff', fontSize: '2rem', marginTop: '0.2rem' }}>GRID DE LARGADA</h2>
-          <p style={{ color: '#8a92a6', fontSize: '0.9rem' }}>Resultados da qualificação para o GP de {track.name}</p>
+          <span className="text-numeric" style={{ color: 'var(--yellow-neon)', fontSize: '0.9rem', letterSpacing: '1px' }}>{t.practiceSession}</span>
+          <h2 className="text-numeric" style={{ color: 'var(--text-bright)', fontSize: '2rem', marginTop: '0.2rem' }}>{t.startingGrid}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t.qualifyingDesc.replace('{name}', track.name)}</p>
         </div>
 
-        <div className="custom-scroll" style={{ maxHeight: '380px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+        <div className="custom-scroll" style={{ maxHeight: '380px', border: '1px solid var(--border-color-default)', borderRadius: '8px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left', background: 'rgba(0,0,0,0.2)' }}>
-                <th style={{ padding: '0.6rem 1rem' }}>Pos</th>
-                <th>Piloto</th>
-                <th>Equipe</th>
-                <th style={{ textAlign: 'right', paddingRight: '1rem' }}>Score</th>
+              <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left', background: 'var(--bg-qualifying-header)' }}>
+                <th style={{ padding: '0.6rem 1rem', color: 'var(--text-muted)' }}>{t.pos}</th>
+                <th style={{ color: 'var(--text-muted)' }}>{t.driver}</th>
+                <th style={{ color: 'var(--text-muted)' }}>{t.team}</th>
+                <th style={{ textAlign: 'right', paddingRight: '1rem', color: 'var(--text-muted)' }}>Score</th>
               </tr>
             </thead>
             <tbody>
@@ -876,8 +879,8 @@ export default function RaceSimulation({
                 <tr 
                   key={drv.id} 
                   style={{ 
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    color: drv.isPlayer ? 'var(--green-neon)' : '#fff',
+                    borderBottom: '1px solid var(--border-color-default)',
+                    color: drv.isPlayer ? 'var(--green-neon)' : 'var(--text-main)',
                     fontWeight: drv.isPlayer ? 'bold' : 'normal',
                     background: drv.isPlayer ? 'rgba(0, 255, 135, 0.05)' : 'transparent'
                   }}
@@ -887,7 +890,7 @@ export default function RaceSimulation({
                     <span>{drv.name}</span>
                     {drv.isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
                   </td>
-                  <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
+                  <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : 'var(--text-muted)' }}>{drv.teamName}</td>
                   <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '1rem' }}>{drv.qScore.toFixed(3)}</td>
                 </tr>
               ))}
@@ -896,7 +899,7 @@ export default function RaceSimulation({
         </div>
 
         <button className="btn btn-primary" onClick={handleStartRace} style={{ alignSelf: 'center', minWidth: '200px' }}>
-          <span className="btn-content">Alinhar no Grid e Correr</span>
+          <span className="btn-content">{t.gridAndRunBtn}</span>
         </button>
       </div>
     );
@@ -917,16 +920,16 @@ export default function RaceSimulation({
     return (
       <div className="panel animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ textAlign: 'center' }}>
-          <span className="text-numeric" style={{ color: 'var(--green-neon)', fontSize: '0.9rem', letterSpacing: '1.5px' }}>BANDEIRA QUADRICULADA</span>
-          <h2 className="text-numeric" style={{ color: '#fff', fontSize: '2.2rem', marginTop: '0.2rem' }}>RESULTADO DA CORRIDA</h2>
-          <p style={{ color: '#8a92a6', fontSize: '0.9rem' }}>Etapa concluída no GP de {track.name} ({track.country})</p>
+          <span className="text-numeric" style={{ color: 'var(--green-neon)', fontSize: '0.9rem', letterSpacing: '1.5px' }}>{t.checkeredFlag}</span>
+          <h2 className="text-numeric" style={{ color: 'var(--text-bright)', fontSize: '2.2rem', marginTop: '0.2rem' }}>{t.raceResult}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t.stageCompleted.replace('{name}', track.name).replace('{country}', track.country)}</p>
         </div>
 
         {/* Podium Visual */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '1.5rem', margin: '1rem 0' }}>
           {podium[1] && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.85rem', color: '#8a92a6', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '100px' }}>{podium[1].name}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '100px' }}>{podium[1].name}</div>
               <div style={{
                 background: 'linear-gradient(to top, #6c757d, #adb5bd)',
                 width: '70px',
@@ -945,7 +948,7 @@ export default function RaceSimulation({
 
           {podium[0] && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span className="synergy-badge" style={{ fontSize: '0.65rem', marginBottom: '0.4rem', padding: '0.1rem 0.4rem' }}>VENCEDOR</span>
+              <span className="synergy-badge" style={{ fontSize: '0.65rem', marginBottom: '0.4rem', padding: '0.1rem 0.4rem' }}>{lang === 'pt' ? 'VENCEDOR' : 'WINNER'}</span>
               <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'var(--yellow-neon)', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '110px' }}>{podium[0].name}</div>
               <div style={{
                 background: 'linear-gradient(to top, #9a780b, #d4af37)',
@@ -965,7 +968,7 @@ export default function RaceSimulation({
 
           {podium[2] && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.85rem', color: '#8a92a6', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '100px' }}>{podium[2].name}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '100px' }}>{podium[2].name}</div>
               <div style={{
                 background: 'linear-gradient(to top, #704214, #cd7f32)',
                 width: '70px',
@@ -985,34 +988,34 @@ export default function RaceSimulation({
 
         <div style={{
           background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.05)',
+          border: '1px solid var(--border-color-default)',
           borderRadius: '8px',
           padding: '1rem',
           textAlign: 'center'
         }}>
           <h4 style={{ color: 'var(--green-neon)', fontSize: '0.95rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-            Desempenho da Sua Equipe
+            {t.teamPerformance}
           </h4>
-          <p style={{ fontSize: '0.9rem', color: '#c2c8d4' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-card-desc)' }}>
             {player1.name}:{' '}
             <strong>
-              {player1.dNF ? `Fora (${player1.dnfReason})` : `P${player1.pos}`}
+              {player1.dNF ? `${t.outOfRace} (${player1.dnfReason})` : `P${player1.pos}`}
             </strong>{' '}
             | {player2.name}:{' '}
             <strong>
-              {player2.dNF ? `Fora (${player2.dnfReason})` : `P${player2.pos}`}
+              {player2.dNF ? `${t.outOfRace} (${player2.dnfReason})` : `P${player2.pos}`}
             </strong>
           </p>
         </div>
 
-        <div className="custom-scroll" style={{ maxHeight: '250px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+        <div className="custom-scroll" style={{ maxHeight: '250px', border: '1px solid var(--border-color-default)', borderRadius: '8px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left', background: 'rgba(0,0,0,0.2)' }}>
-                <th style={{ padding: '0.5rem 1rem' }}>Pos</th>
-                <th>Piloto</th>
-                <th>Equipe</th>
-                <th style={{ textAlign: 'right', paddingRight: '1rem' }}>Tempo/Status</th>
+              <tr style={{ borderBottom: '1px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left', background: 'var(--bg-qualifying-header)' }}>
+                <th style={{ padding: '0.5rem 1rem', color: 'var(--text-muted)' }}>{t.pos}</th>
+                <th style={{ color: 'var(--text-muted)' }}>{t.driver}</th>
+                <th style={{ color: 'var(--text-muted)' }}>{t.team}</th>
+                <th style={{ textAlign: 'right', paddingRight: '1rem', color: 'var(--text-muted)' }}>{t.timeStatus}</th>
               </tr>
             </thead>
             <tbody>
@@ -1020,8 +1023,8 @@ export default function RaceSimulation({
                 <tr 
                   key={drv.id} 
                   style={{ 
-                    borderBottom: '1px solid rgba(255,255,255,0.03)',
-                    color: drv.isPlayer ? 'var(--green-neon)' : '#fff',
+                    borderBottom: '1px solid var(--border-color-default)',
+                    color: drv.isPlayer ? 'var(--green-neon)' : 'var(--text-main)',
                     background: drv.isPlayer ? 'rgba(0, 255, 135, 0.05)' : 'transparent'
                   }}
                 >
@@ -1030,12 +1033,12 @@ export default function RaceSimulation({
                     <span>{drv.name}</span>
                     {drv.isPlayer && <span className="synergy-badge" style={{ padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>P</span>}
                   </td>
-                  <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : '#8a92a6' }}>{drv.teamName}</td>
+                  <td style={{ color: drv.isPlayer ? 'var(--green-neon)' : 'var(--text-muted)' }}>{drv.teamName}</td>
                   <td className="text-numeric" style={{ textAlign: 'right', paddingRight: '1rem' }}>
                     {drv.dNF ? (
                       <span style={{ color: 'var(--f1-red)', fontSize: '0.75rem' }}>DNF ({drv.dnfReason})</span>
                     ) : idx === 0 ? (
-                      'VENCEDOR'
+                      lang === 'pt' ? 'VENCEDOR' : 'WINNER'
                     ) : (
                       `+${(drv.totalTime - sorted[0].totalTime).toFixed(2)}s`
                     )}
@@ -1047,7 +1050,7 @@ export default function RaceSimulation({
         </div>
 
         <button className="btn btn-primary" onClick={handleQuickFinish} style={{ alignSelf: 'center', minWidth: '220px' }}>
-          <span className="btn-content">Voltar para o Campeonato</span>
+          <span className="btn-content">{t.backToChampionship}</span>
         </button>
       </div>
     );
@@ -1095,29 +1098,29 @@ export default function RaceSimulation({
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <div style={{ textAlign: 'right', marginRight: '0.5rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button 
                   className={`btn ${isPlaying ? 'btn-danger' : 'btn-primary'}`} 
                   onClick={togglePlay}
-                  style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                  style={{ minWidth: '140px', padding: '0.5rem 1rem', fontSize: '0.8rem', height: '42px' }}
                 >
-                  <span className="btn-content">{isPlaying ? 'PAUSAR' : 'AUTO-PLAY'}</span>
+                  <span className="btn-content">{isPlaying ? t.pauseBtn : t.autoplayBtn}</span>
                 </button>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <button 
-                    className="btn btn-secondary" 
-                    onClick={runInteractiveLap}
-                    disabled={isPlaying}
-                    style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
-                  >
-                    <span className="btn-content">PRÓX. VOLTA</span>
-                  </button>
-                  {!isPlaying && (
-                    <span style={{ fontSize: '0.65rem', color: '#8a92a6', marginTop: '0.25rem', opacity: 0.8 }}>
-                      [Espaço / Enter]
-                    </span>
-                  )}
-                </div>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={runInteractiveLap}
+                  disabled={isPlaying}
+                  style={{ minWidth: '160px', padding: '0.5rem 1rem', fontSize: '0.8rem', height: '42px' }}
+                >
+                  <span className="btn-content" style={{ display: 'flex', flexDirection: 'column', gap: '2px', lineHeight: 1.1 }}>
+                    <span>{t.nextLapBtn}</span>
+                    {!isPlaying && (
+                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 'normal', textTransform: 'none' }}>
+                        [Espaço / Enter]
+                      </span>
+                    )}
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -1131,13 +1134,13 @@ export default function RaceSimulation({
         }}>
           {/* COLUMN 1: Live Positions */}
           <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '520px' }}>
-            <h3 className="text-numeric" style={{ fontSize: '0.95rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem' }}>
-              POSIÇÕES DO GRID
+            <h3 className="text-numeric" style={{ fontSize: '0.95rem', color: 'var(--text-bright)', borderBottom: '1px solid var(--border-color-default)', paddingBottom: '0.5rem' }}>
+              {t.gridPositions}
             </h3>
 
             {/* Progress tracks for top cars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#8a92a6', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Posições na Pista</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'var(--bg-qualifying-header)', padding: '0.75rem', borderRadius: '8px' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>{t.trackPositions}</div>
               {orderedDrivers.slice(0, 5).map(drv => (
                 <div key={drv.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontSize: '0.75rem', minWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{drv.name.split(' ')[1] || drv.name}</span>
@@ -1151,7 +1154,7 @@ export default function RaceSimulation({
                       </div>
                     )}
                     {drv.dNF && (
-                      <div style={{ color: 'var(--f1-red)', fontSize: '0.7rem', paddingLeft: '1rem', lineHeight: '32px', fontWeight: 'bold' }}>
+                      <div style={{ color: 'var(--f1-red)', fontSize: '0.7rem', paddingLeft: '1rem', lineHeight: '20px', fontWeight: 'bold' }}>
                         DNF
                       </div>
                     )}
@@ -1194,12 +1197,12 @@ export default function RaceSimulation({
             <div className="custom-scroll" style={{ flex: 1, maxHeight: '250px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left' }}>
-                    <th>Pos</th>
-                    <th>Piloto</th>
-                    <th>Pneu</th>
-                    <th style={{ textAlign: 'right' }}>Desgaste</th>
-                    <th style={{ textAlign: 'right', paddingRight: '0.5rem' }}>Status</th>
+                  <tr style={{ borderBottom: '1px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.pos}</th>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.driver}</th>
+                    <th style={{ color: 'var(--text-muted)' }}>{t.tyre}</th>
+                    <th style={{ textAlign: 'right', color: 'var(--text-muted)' }}>{t.wear}</th>
+                    <th style={{ textAlign: 'right', paddingRight: '0.5rem', color: 'var(--text-muted)' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1207,8 +1210,8 @@ export default function RaceSimulation({
                     <tr 
                       key={drv.id} 
                       style={{ 
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
-                        color: drv.isPlayer ? 'var(--green-neon)' : '#fff',
+                        borderBottom: '1px solid var(--border-color-default)',
+                        color: drv.isPlayer ? 'var(--green-neon)' : 'var(--text-main)',
                         fontWeight: drv.isPlayer ? 'bold' : 'normal',
                         background: drv.isPlayer ? 'rgba(0, 255, 135, 0.04)' : 'transparent'
                       }}
@@ -1218,7 +1221,7 @@ export default function RaceSimulation({
                       <td>
                         <span style={{
                           background: drv.tyre === 'S' ? 'var(--f1-red)' : drv.tyre === 'M' ? 'var(--yellow-neon)' : drv.tyre === 'H' ? '#fff' : 'var(--blue-neon)',
-                          color: drv.tyre === 'H' ? '#000' : '#fff',
+                          color: drv.tyre === 'H' || drv.tyre === 'M' ? '#000' : '#fff',
                           padding: '0.1rem 0.3rem',
                           borderRadius: '4px',
                           fontSize: '0.7rem',
@@ -1234,9 +1237,9 @@ export default function RaceSimulation({
                         {drv.dNF ? (
                           <span style={{ color: 'var(--f1-red)', fontSize: '0.7rem' }}>DNF</span>
                         ) : drv.pos === 1 ? (
-                          'LÍDER'
+                          t.leader
                         ) : (
-                          'ATIVO'
+                          t.active
                         )}
                       </td>
                     </tr>
@@ -1408,14 +1411,14 @@ export default function RaceSimulation({
                 flex: 1
               }}>
                 <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                  <h4 style={{ color: 'var(--text-bright)', fontSize: '0.95rem', fontWeight: 'bold' }}>
                     {player1.name}
                   </h4>
                   <span className="text-numeric" style={{ 
                     fontSize: '1rem', 
                     color: 'var(--yellow-neon)', 
                     fontWeight: 'bold', 
-                    background: 'rgba(0,0,0,0.3)', 
+                    background: 'rgba(0,0,0,0.1)', 
                     padding: '0.15rem 0.4rem',
                     borderRadius: '5px'
                   }}>
@@ -1423,47 +1426,50 @@ export default function RaceSimulation({
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#8a92a6', marginBottom: '0.6rem' }}>
-                  <span>Pneu: <strong style={{ color: '#fff' }}>{player1.tyre}</strong> ({player1.tyreWear.toFixed(0)}% desgaste)</span>
-                  <span>Modo: <strong style={{ color: '#fff' }}>{player1.posture === 'aggressive' ? 'Agressivo' : player1.posture === 'conservative' ? 'Econômico' : 'Equilibrado'}</strong></span>
+                <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+                  <span>{t.tyre}: <strong style={{ color: 'var(--text-bright)' }}>{player1.tyre}</strong> ({player1.tyreWear.toFixed(0)}% {t.wear.toLowerCase()})</span>
+                  <span>{lang === 'pt' ? 'Modo' : 'Mode'}: <strong style={{ color: 'var(--text-bright)' }}>{player1.posture === 'aggressive' ? t.aggressive : player1.posture === 'conservative' ? t.conservative : t.balanced}</strong></span>
                 </div>
 
                 {d1Overheating && (
                   <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
-                    ALERTA: Motor superaquecendo! Mude para Econômica!
+                    {t.overheatingAlert}
                   </div>
                 )}
 
                 {/* Posture select */}
                 <div style={{ marginBottom: '0.8rem' }}>
-                  <label style={{ fontSize: '0.72rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Mudar Postura:</label>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>{t.postureLabel}</label>
                   <div style={{ display: 'flex', gap: '0.2rem' }}>
                     <button 
                       className={`btn ${d1Posture === 'aggressive' ? 'btn-danger' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
+                      style={{ flex: 1, padding: '0.4rem 0.2rem', fontSize: '0.75rem', fontFamily: 'var(--font-f1-body)', letterSpacing: 'normal' }}
                       onClick={() => setD1Posture('aggressive')}
                     >
-                      Agressiva
+                      <span className="btn-content">{t.aggressive}</span>
                     </button>
                     <button 
                       className={`btn ${d1Posture === 'balanced' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
+                      style={{ flex: 1, padding: '0.4rem 0.2rem', fontSize: '0.75rem', fontFamily: 'var(--font-f1-body)', letterSpacing: 'normal' }}
                       onClick={() => setD1Posture('balanced')}
                     >
-                      Equilibrada
+                      <span className="btn-content">{t.balanced}</span>
                     </button>
                     <button 
                       className={`btn ${d1Posture === 'conservative' ? 'btn-secondary' : 'btn-secondary'}`}
                       style={{ 
                         flex: 1, 
-                        padding: '0.3rem 0.4rem', 
-                        fontSize: '0.68rem',
-                        borderColor: d1Posture === 'conservative' ? 'var(--blue-neon)' : 'rgba(255,255,255,0.2)',
-                        color: d1Posture === 'conservative' ? 'var(--blue-neon)' : '#fff'
+                        padding: '0.4rem 0.2rem', 
+                        fontSize: '0.75rem',
+                        fontFamily: 'var(--font-f1-body)',
+                        letterSpacing: 'normal',
+                        borderColor: d1Posture === 'conservative' ? 'var(--blue-neon)' : 'var(--border-color-default)',
+                        color: d1Posture === 'conservative' ? 'var(--blue-neon)' : 'var(--text-main)',
+                        background: d1Posture === 'conservative' ? 'rgba(0, 240, 255, 0.05)' : 'transparent'
                       }}
                       onClick={() => setD1Posture('conservative')}
                     >
-                      Econômica
+                      <span className="btn-content">{t.conservative}</span>
                     </button>
                   </div>
                 </div>
@@ -1511,9 +1517,9 @@ export default function RaceSimulation({
             ) : (
               <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)', flex: 1 }}>
                 <h4 style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>
-                  {player1?.name} — DNF (Abandono)
+                  {player1?.name} — DNF ({lang === 'pt' ? 'Abandono' : 'Retirement'})
                 </h4>
-                <p style={{ fontSize: '0.72rem', color: '#8a92a6' }}>Razão: {player1?.dnfReason}</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Razão' : 'Reason'}: {player1?.dnfReason}</p>
               </div>
             )}
 
@@ -1527,14 +1533,14 @@ export default function RaceSimulation({
                 flex: 1
               }}>
                 <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                  <h4 style={{ color: 'var(--text-bright)', fontSize: '0.95rem', fontWeight: 'bold' }}>
                     {player2.name}
                   </h4>
                   <span className="text-numeric" style={{ 
                     fontSize: '1rem', 
                     color: 'var(--yellow-neon)', 
                     fontWeight: 'bold', 
-                    background: 'rgba(0,0,0,0.3)', 
+                    background: 'rgba(0,0,0,0.1)', 
                     padding: '0.15rem 0.4rem',
                     borderRadius: '5px'
                   }}>
@@ -1542,47 +1548,50 @@ export default function RaceSimulation({
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#8a92a6', marginBottom: '0.6rem' }}>
-                  <span>Pneu: <strong style={{ color: '#fff' }}>{player2.tyre}</strong> ({player2.tyreWear.toFixed(0)}% desgaste)</span>
-                  <span>Modo: <strong style={{ color: '#fff' }}>{player2.posture === 'aggressive' ? 'Agressivo' : player2.posture === 'conservative' ? 'Econômico' : 'Equilibrado'}</strong></span>
+                <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+                  <span>{t.tyre}: <strong style={{ color: 'var(--text-bright)' }}>{player2.tyre}</strong> ({player2.tyreWear.toFixed(0)}% {t.wear.toLowerCase()})</span>
+                  <span>{lang === 'pt' ? 'Modo' : 'Mode'}: <strong style={{ color: 'var(--text-bright)' }}>{player2.posture === 'aggressive' ? t.aggressive : player2.posture === 'conservative' ? t.conservative : t.balanced}</strong></span>
                 </div>
 
                 {d2Overheating && (
                   <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
-                    ALERTA: Motor superaquecendo! Mude para Econômica!
+                    {t.overheatingAlert}
                   </div>
                 )}
 
                 {/* Posture select */}
                 <div style={{ marginBottom: '0.8rem' }}>
-                  <label style={{ fontSize: '0.72rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Mudar Postura:</label>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>{t.postureLabel}</label>
                   <div style={{ display: 'flex', gap: '0.2rem' }}>
                     <button 
                       className={`btn ${d2Posture === 'aggressive' ? 'btn-danger' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
+                      style={{ flex: 1, padding: '0.4rem 0.2rem', fontSize: '0.75rem', fontFamily: 'var(--font-f1-body)', letterSpacing: 'normal' }}
                       onClick={() => setD2Posture('aggressive')}
                     >
-                      Agressiva
+                      <span className="btn-content">{t.aggressive}</span>
                     </button>
                     <button 
                       className={`btn ${d2Posture === 'balanced' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
+                      style={{ flex: 1, padding: '0.4rem 0.2rem', fontSize: '0.75rem', fontFamily: 'var(--font-f1-body)', letterSpacing: 'normal' }}
                       onClick={() => setD2Posture('balanced')}
                     >
-                      Equilibrada
+                      <span className="btn-content">{t.balanced}</span>
                     </button>
                     <button 
                       className={`btn ${d2Posture === 'conservative' ? 'btn-secondary' : 'btn-secondary'}`}
                       style={{ 
                         flex: 1, 
-                        padding: '0.3rem 0.4rem', 
-                        fontSize: '0.68rem',
-                        borderColor: d2Posture === 'conservative' ? 'var(--blue-neon)' : 'rgba(255,255,255,0.2)',
-                        color: d2Posture === 'conservative' ? 'var(--blue-neon)' : '#fff'
+                        padding: '0.4rem 0.2rem', 
+                        fontSize: '0.75rem',
+                        fontFamily: 'var(--font-f1-body)',
+                        letterSpacing: 'normal',
+                        borderColor: d2Posture === 'conservative' ? 'var(--blue-neon)' : 'var(--border-color-default)',
+                        color: d2Posture === 'conservative' ? 'var(--blue-neon)' : 'var(--text-main)',
+                        background: d2Posture === 'conservative' ? 'rgba(0, 240, 255, 0.05)' : 'transparent'
                       }}
                       onClick={() => setD2Posture('conservative')}
                     >
-                      Econômica
+                      <span className="btn-content">{t.conservative}</span>
                     </button>
                   </div>
                 </div>
@@ -1630,9 +1639,9 @@ export default function RaceSimulation({
             ) : (
               <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)', flex: 1 }}>
                 <h4 style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>
-                  {player2?.name} — DNF (Abandono)
+                  {player2?.name} — DNF ({lang === 'pt' ? 'Abandono' : 'Retirement'})
                 </h4>
-                <p style={{ fontSize: '0.72rem', color: '#8a92a6' }}>Razão: {player2?.dnfReason}</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Razão' : 'Reason'}: {player2?.dnfReason}</p>
               </div>
             )}
           </div>
@@ -1663,7 +1672,7 @@ export default function RaceSimulation({
               </h2>
               
               <p style={{ 
-                color: '#f1f3f5', 
+                color: 'var(--text-bright)', 
                 fontSize: '0.95rem', 
                 lineHeight: 1.5, 
                 textAlign: 'center',
@@ -1680,7 +1689,7 @@ export default function RaceSimulation({
                   }}
                   style={{ minWidth: '150px' }}
                 >
-                  OK / AJUSTAR ESTRATÉGIA
+                  {t.adjustStrategy}
                 </button>
               </div>
             </div>

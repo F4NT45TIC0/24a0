@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DraftScreen from './components/DraftScreen';
 import SeasonSummary from './components/SeasonSummary';
 import RaceSimulation, { AI_GRID } from './components/RaceSimulation';
 import { tracks } from './data/tracks';
 import AdBanner from './components/AdBanner';
 import SupportModal from './components/SupportModal';
+import { translations } from './data/translations';
+import { drivers } from './data/drivers';
 import './App.css';
 
 export default function App() {
@@ -16,12 +18,45 @@ export default function App() {
     if (saved) return saved;
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   });
+  const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'pt');
+  const [activeAiGrid, setActiveAiGrid] = useState([]);
+  const [introPhase, setIntroPhase] = useState(() => {
+    return localStorage.getItem('visited_before') ? 'none' : 'video';
+  });
+  const videoRef = useRef(null);
+
+  // Resilient autoplay sound check
+  useEffect(() => {
+    if (introPhase === 'video' && videoRef.current) {
+      videoRef.current.play().catch(err => {
+        console.log("Autoplay with sound blocked, trying muted...", err);
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          videoRef.current.play().catch(e => console.log("Failed to play video:", e));
+        }
+      });
+    }
+  }, [introPhase]);
+
+  const handleSkipIntro = () => {
+    setIntroPhase('shutting-down');
+    setTimeout(() => {
+      setIntroPhase('none');
+    }, 800); // matches CSS crt-turn-off animation
+  };
+
+  const t = translations[lang];
 
   // Apply theme to body
   React.useEffect(() => {
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Save lang to localStorage
+  React.useEffect(() => {
+    localStorage.setItem('lang', lang);
+  }, [lang]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -42,10 +77,41 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [interactiveRace, setInteractiveRace] = useState(false);
 
-  // Initialize standings with AI + Player slots
+  // Initialize standings with AI + Player slots (prevent duplicates)
   const initializeStandings = (draftedTeam) => {
+    const draftedIds = [draftedTeam.driver1.id, draftedTeam.driver2.id];
+    const aiGridIds = AI_GRID.map(ai => ai.id);
+
+    // Filter AI competitors to exclude drafted drivers
+    let filteredAiGrid = AI_GRID.filter(ai => !draftedIds.includes(ai.id));
+    const missingCount = 18 - filteredAiGrid.length;
+
+    if (missingCount > 0) {
+      // Find reserves that are not drafted and not in AI_GRID
+      const availableReserves = drivers.filter(d => 
+        !draftedIds.includes(d.id) && !aiGridIds.includes(d.id)
+      );
+      
+      const reserves = availableReserves.sort(() => 0.5 - Math.random()).slice(0, missingCount);
+
+      reserves.forEach((res, index) => {
+        filteredAiGrid.push({
+          id: res.id,
+          name: res.name,
+          teamId: `reserve_${index}`,
+          teamName: lang === 'pt' ? `Equipe Reserva ${index + 1}` : `Reserve Team ${index + 1}`,
+          speed: res.attributes.speed,
+          rain: res.attributes.rain,
+          reliability: res.attributes.reliability || 90,
+          strategy: res.attributes.strategy || 85
+        });
+      });
+    }
+
+    setActiveAiGrid(filteredAiGrid);
+
     // 1. Initialize Drivers
-    const driverList = AI_GRID.map(ai => ({
+    const driverList = filteredAiGrid.map(ai => ({
       id: ai.id,
       name: ai.name,
       teamId: ai.teamId,
@@ -54,11 +120,13 @@ export default function App() {
       wins: 0
     }));
 
+    const playerTeamName = lang === 'pt' ? 'Sua Equipe' : 'Your Team';
+
     driverList.push({
       id: 'player_d1',
       name: draftedTeam.driver1.name,
       teamId: 'player_team',
-      teamName: 'Sua Equipe',
+      teamName: playerTeamName,
       points: 0,
       wins: 0
     });
@@ -67,24 +135,28 @@ export default function App() {
       id: 'player_d2',
       name: draftedTeam.driver2.name,
       teamId: 'player_team',
-      teamName: 'Sua Equipe',
+      teamName: playerTeamName,
       points: 0,
       wins: 0
     });
 
-    // 2. Initialize Constructors
+    // 2. Initialize Constructors (Teams)
     const uniqueTeams = [
-      { id: 'player_team', name: 'Sua Equipe', points: 0, wins: 0 },
-      { id: 'redbull', name: 'Red Bull Racing', points: 0, wins: 0 },
-      { id: 'mercedes', name: 'Mercedes AMG', points: 0, wins: 0 },
-      { id: 'ferrari', name: 'Scuderia Ferrari', points: 0, wins: 0 },
-      { id: 'mclaren', name: 'McLaren F1', points: 0, wins: 0 },
-      { id: 'aston', name: 'Aston Martin', points: 0, wins: 0 },
-      { id: 'alpine', name: 'Alpine Renault', points: 0, wins: 0 },
-      { id: 'williams', name: 'Williams Racing', points: 0, wins: 0 },
-      { id: 'haas', name: 'Haas F1', points: 0, wins: 0 },
-      { id: 'sauber', name: 'Kick Sauber', points: 0, wins: 0 }
+      { id: 'player_team', name: playerTeamName, points: 0, wins: 0 }
     ];
+
+    const addedTeamIds = new Set(['player_team']);
+    filteredAiGrid.forEach(ai => {
+      if (!addedTeamIds.has(ai.teamId)) {
+        addedTeamIds.add(ai.teamId);
+        uniqueTeams.push({
+          id: ai.teamId,
+          name: ai.teamName,
+          points: 0,
+          wins: 0
+        });
+      }
+    });
 
     setStandings({
       drivers: driverList.sort((a, b) => b.points - a.points),
@@ -211,7 +283,7 @@ export default function App() {
                 fontWeight: 900,
                 letterSpacing: '3px'
               }}>
-                DESAFIO HISTÓRICO
+                {t.historicalChallenge}
               </span>
               
               <h1 className="glow-text pulse-effect" style={{ 
@@ -219,20 +291,20 @@ export default function App() {
                 margin: '0.5rem 0 1.5rem 0', 
                 fontWeight: 900,
                 lineHeight: 1.1,
-                color: '#fff'
+                color: 'var(--text-bright)'
               }}>
-                24a0
+                {t.appTitle}
               </h1>
               
               <p style={{ 
-                color: '#c2c8d4', 
+                color: 'var(--text-card-desc)', 
                 fontSize: '1.1rem', 
                 lineHeight: '1.6',
                 marginBottom: '2.5rem' 
               }}>
-                Bem-vindo ao <strong>24a0</strong>. Seu objetivo é draftar os melhores recursos históricos da Fórmula 1 (Pilotos, Chassi, Motor e Estrategista) e dominar as <strong>24 corridas</strong> do campeonato mundial.
+                {t.menuWelcome}
                 <br/>
-                <span style={{ color: 'var(--green-neon)', fontWeight: 'bold' }}>Consegue atingir o feito impossível de 24 vitórias consecutivas?</span>
+                <span style={{ color: 'var(--green-neon)', fontWeight: 'bold' }}>{t.menuSynergyCall}</span>
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '350px', margin: '0 auto' }}>
@@ -241,7 +313,7 @@ export default function App() {
                   onClick={() => handleStartGame('classic')}
                   style={{ width: '100%', fontSize: '0.95rem' }}
                 >
-                  <span className="btn-content">Modo Clássico (Ver Atributos)</span>
+                  <span className="btn-content">{t.classicMode}</span>
                 </button>
                 <button 
                   className="btn btn-secondary" 
@@ -253,7 +325,7 @@ export default function App() {
                     color: 'var(--tier-legendary)'
                   }}
                 >
-                  <span className="btn-content">Modo Almanaque (Ocular Stats)</span>
+                  <span className="btn-content">{t.almanacMode}</span>
                 </button>
                 
                 <button 
@@ -267,23 +339,23 @@ export default function App() {
                     color: 'var(--green-neon)'
                   }}
                 >
-                  <span className="btn-content">Apoiar o Jogo (PIX)</span>
+                  <span className="btn-content">{t.supportText}</span>
                 </button>
               </div>
 
               <div style={{ 
                 marginTop: '3rem', 
                 paddingTop: '2rem', 
-                borderTop: '1px solid rgba(255,255,255,0.05)',
+                borderTop: '1px solid var(--border-color-default)',
                 fontSize: '0.85rem',
-                color: '#8a92a6',
+                color: 'var(--text-muted)',
                 textAlign: 'left'
               }}>
-                <h4 style={{ color: '#fff', marginBottom: '0.5rem' }}>Como jogar:</h4>
+                <h4 style={{ color: 'var(--text-bright)', marginBottom: '0.5rem' }}>{t.howToPlayTitle}</h4>
                 <ul style={{ paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <li><strong>Draft:</strong> Escolha 5 componentes. Você recebe 3 opções aleatórias por slot e tem 3 rerolls.</li>
-                  <li><strong>Sinergias:</strong> Combine pilotos, carros e chefes compatíveis na história real para ganhar bônus significativos.</li>
-                  <li><strong>Simulação Dupla:</strong> Corra de forma rápida em 1 clique ou assuma o controle estratégico da corrida nas paradas de box, reação à chuva e postura dos pilotos.</li>
+                  <li><strong>Draft:</strong> {t.howToPlayDraft}</li>
+                  <li><strong>Sinergias:</strong> {t.howToPlaySynergy}</li>
+                  <li><strong>Simulação Dupla:</strong> {t.howToPlaySim}</li>
                 </ul>
               </div>
             </div>
@@ -294,6 +366,8 @@ export default function App() {
           <DraftScreen 
             gameMode={gameMode} 
             onDraftComplete={handleDraftComplete} 
+            t={t}
+            lang={lang}
           />
         );
       case 'season':
@@ -306,6 +380,8 @@ export default function App() {
             history={history}
             onStartRace={handleStartRace}
             onRestartGame={handleRestartGame}
+            t={t}
+            lang={lang}
           />
         );
       case 'race':
@@ -315,6 +391,9 @@ export default function App() {
             track={tracks[currentRaceIndex]}
             interactive={interactiveRace}
             onRaceComplete={handleRaceComplete}
+            aiGrid={activeAiGrid}
+            t={t}
+            lang={lang}
           />
         );
       default:
@@ -322,12 +401,91 @@ export default function App() {
     }
   };
 
+  // Phase 1: Video Intro (CRT retro TV)
+  if (introPhase === 'video' || introPhase === 'shutting-down') {
+    return (
+      <div className="crt-wrapper">
+        <button className="crt-skip-btn" onClick={handleSkipIntro}>
+          {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
+        </button>
+        
+        <div className="crt-case">
+          <div className="crt-screen-container">
+            <div className={`crt-screen crt-flicker ${introPhase === 'shutting-down' ? 'turning-off' : ''}`}>
+              <video 
+                ref={videoRef}
+                src="/Video.mp4" 
+                playsInline 
+                autoPlay 
+                onEnded={handleSkipIntro}
+                className="crt-video"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase 2: Calibration Welcome Splash
+  const showWelcomeSplash = !localStorage.getItem('visited_before');
+  if (showWelcomeSplash) {
+    return (
+      <div className="modal-overlay" style={{ background: 'var(--bg-darker)', display: 'flex', flexDirection: 'column', justifyItems: 'center', alignItems: 'center', zIndex: 9999 }}>
+        <div className="panel animate-fadeIn" style={{ maxWidth: '550px', textAlign: 'center', padding: '3.5rem 2rem', border: '1px solid var(--f1-red)', boxShadow: '0 0 40px var(--f1-red-glow)' }}>
+          <span className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1.2rem', fontWeight: 900, letterSpacing: '4px' }}>
+            SYSTEM CALIBRATION
+          </span>
+          <h1 className="glow-text pulse-effect" style={{ fontSize: '5rem', margin: '1rem 0', fontWeight: 900, lineHeight: 1, color: 'var(--text-bright)' }}>
+            24a0
+          </h1>
+          <p style={{ color: 'var(--text-card-desc)', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
+            {lang === 'pt' 
+              ? 'Conectando ao sistema de telemetria em tempo real. Prepare-se para gerenciar recursos lendários da Fórmula 1 e liderar sua equipe rumo à temporada perfeita.'
+              : 'Connecting to real-time telemetry feed. Prepare to draft legendary Formula 1 assets and lead your team to the perfect season.'}
+          </p>
+          
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            <button 
+              className="theme-toggle" 
+              onClick={() => setLang('pt')}
+              style={{ border: lang === 'pt' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'pt' ? 'var(--green-neon)' : 'var(--text-muted)' }}
+            >
+              <span className="theme-toggle-content">PORTUGUÊS</span>
+            </button>
+            <button 
+              className="theme-toggle" 
+              onClick={() => setLang('en')}
+              style={{ border: lang === 'en' ? '1px solid var(--green-neon)' : '1px solid var(--border-color-default)', color: lang === 'en' ? 'var(--green-neon)' : 'var(--text-muted)' }}
+            >
+              <span className="theme-toggle-content">ENGLISH</span>
+            </button>
+          </div>
+
+          <button 
+            className="btn btn-primary"
+            style={{ width: '100%', maxWidth: '280px', padding: '1rem' }}
+            onClick={() => {
+              localStorage.setItem('visited_before', 'true');
+              // Trigger state refresh
+              setIntroPhase('none');
+            }}
+          >
+            <span className="btn-content" style={{ fontSize: '0.9rem' }}>
+              {lang === 'pt' ? 'INICIAR TRANSMISSÃO' : 'INITIALIZE FEED'}
+            </span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Global Navbar */}
       <header style={{
-        background: 'rgba(11, 13, 18, 0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--bg-dark)',
+        borderBottom: '1px solid var(--border-color-default)',
         padding: '1rem 2rem',
         display: 'flex',
         justifyContent: 'space-between',
@@ -350,23 +508,33 @@ export default function App() {
             fontWeight: 900, 
             color: 'var(--f1-red)',
             letterSpacing: '1px',
-            textShadow: '0 0 10px rgba(255,24,1,0.3)'
+            textShadow: '0 0 10px rgba(225,6,0,0.3)'
           }}>
-            24a0
+            {t.appTitle}
           </span>
-          <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: '#8a92a6' }}>
-            F1 Draft Sim
+          <span style={{ fontSize: '0.75rem', background: 'var(--bg-qualifying-header)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
+            {t.appSubtitle}
           </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           <button 
             className="theme-toggle" 
+            onClick={() => setLang(prev => prev === 'pt' ? 'en' : 'pt')}
+            title={lang === 'pt' ? 'Mudar para Inglês' : 'Switch to Portuguese'}
+          >
+            <span className="theme-toggle-content">
+              {t.langToggle}
+            </span>
+          </button>
+
+          <button 
+            className="theme-toggle" 
             onClick={toggleTheme}
             title="Alternar Tema"
           >
             <span className="theme-toggle-content">
-              {theme === 'light' ? 'ESCURO' : 'CLARO'}
+              {theme === 'light' ? t.themeToggleDark : t.themeToggleLight}
             </span>
           </button>
 
@@ -382,13 +550,13 @@ export default function App() {
               background: 'rgba(255, 202, 0, 0.05)'
             }}
           >
-            <span className="btn-content">Apoiar (PIX)</span>
+            <span className="btn-content">{t.supportBtn}</span>
           </button>
           
           {screen !== 'menu' && team.driver1 && (
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#8a92a6' }}>
-              <div>Carro: <strong style={{ color: '#fff' }}>{team.chassis?.name}</strong></div>
-              <div>Pilotos: <strong style={{ color: '#fff' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
+            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
+              <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
             </div>
           )}
         </div>
@@ -403,6 +571,8 @@ export default function App() {
       <SupportModal 
         isOpen={isSupportOpen} 
         onClose={() => setIsSupportOpen(false)} 
+        t={t}
+        lang={lang}
       />
     </div>
   );

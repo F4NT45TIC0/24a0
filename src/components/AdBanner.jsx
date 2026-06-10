@@ -21,14 +21,14 @@ export default function AdBanner({ type = 'leaderboard' }) {
     <div 
       style={{
         ...currentStyle,
-        background: 'rgba(255,255,255,0.01)',
-        border: '1px dashed rgba(255, 255, 255, 0.08)',
+        background: 'rgba(0,0,0,0.03)',
+        border: '1px dashed var(--border-color-default)',
         borderRadius: '8px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#6c757d',
+        color: 'var(--text-muted)',
         fontSize: '0.8rem',
         textAlign: 'center',
         boxSizing: 'border-box',
@@ -38,7 +38,7 @@ export default function AdBanner({ type = 'leaderboard' }) {
       <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>
         Espaço Publicitário (AdSense / Monetag)
       </span>
-      <span style={{ fontSize: '0.75rem', marginTop: '0.2rem', color: 'rgba(255,255,255,0.2)' }}>
+      <span style={{ fontSize: '0.75rem', marginTop: '0.2rem', color: 'var(--text-muted)', opacity: 0.8 }}>
         {type === 'leaderboard' ? '728 x 90 Banner' : '300 x 250 Retângulo'}
       </span>
     </div>
