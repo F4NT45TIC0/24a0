@@ -572,28 +572,12 @@ export default function App() {
       {/* Main UI layout */}
       {introPhase === 'none' && !showWelcomeSplash && (
         <div style={{ position: 'relative', zIndex: 10 }}>
-          {/* Global Navbar */}
-          <header style={{
-            background: 'var(--bg-dark)',
-            borderBottom: '1px solid var(--border-color-default)',
-            padding: '1rem 2rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            position: 'sticky',
-            top: 0,
-            zIndex: 50
-          }}>
+          <header className="global-header">
             {/* Left Section: Logo + Team Details (to prevent layout shifts on the right controls) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div className="header-left">
               <div 
                 onClick={handleRestartGame} 
-                style={{ 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem' 
-                }}
+                className="header-logo"
               >
                 <span className="text-numeric" style={{ 
                   fontSize: '1.6rem', 
@@ -610,14 +594,7 @@ export default function App() {
               </div>
 
               {screen !== 'menu' && team.driver1 && (
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '1.5rem', 
-                  fontSize: '0.8rem', 
-                  color: 'var(--text-muted)',
-                  borderLeft: '1px solid var(--border-color-default)',
-                  paddingLeft: '1.5rem'
-                }}>
+                <div className="header-team-info">
                   <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
                   <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
                 </div>
@@ -625,7 +602,7 @@ export default function App() {
             </div>
 
             {/* Right Section: Language, Theme, Simple Volume, Support PIX */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div className="header-right">
               <button 
                 className="theme-toggle" 
                 onClick={() => setLang(prev => prev === 'pt' ? 'en' : 'pt')}

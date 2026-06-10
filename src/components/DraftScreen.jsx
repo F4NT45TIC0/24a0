@@ -112,8 +112,7 @@ export default function DraftScreen({ gameMode, onDraftComplete, t, lang }) {
         {/* Left Side: Draft Selection */}
         <div className="panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            {/* Steps indicator */}
-            <div style={{ 
+            <div className="steps-indicator-container" style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
               background: 'var(--bg-qualifying-header)', 
@@ -131,7 +130,7 @@ export default function DraftScreen({ gameMode, onDraftComplete, t, lang }) {
                     opacity: index === currentSlotIndex ? 1 : index < currentSlotIndex ? 0.5 : 0.3
                   }}
                 >
-                  <div style={{ 
+                  <div className="step-number-text" style={{ 
                     fontSize: '0.7rem', 
                     fontWeight: 800, 
                     color: index === currentSlotIndex ? 'var(--f1-red)' : index < currentSlotIndex ? 'var(--green-neon)' : 'var(--text-bright)',
@@ -139,7 +138,7 @@ export default function DraftScreen({ gameMode, onDraftComplete, t, lang }) {
                   }}>
                     {t.step} {index + 1}
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-bright)', marginTop: '0.1rem' }}>
+                  <div className="step-label" style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-bright)', marginTop: '0.1rem' }}>
                     {getSlotLabel(slot.key)}
                   </div>
                   {index < SLOTS.length - 1 && (

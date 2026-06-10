@@ -96,7 +96,7 @@ export default function RaceSimulation({
   const [lightsCount, setLightsCount] = useState(0);
   const [grid, setGrid] = useState([]);
   const [currentLap, setCurrentLap] = useState(0);
-  const totalLaps = 12; // Standard simulation length in both modes
+  const totalLaps = 20; // Standard simulation length in both modes
   
   // Weather
   const [weather, setWeather] = useState('seco'); // 'seco', 'chuva'
@@ -924,8 +924,8 @@ export default function RaceSimulation({
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t.qualifyingDesc.replace('{name}', track.name)}</p>
         </div>
 
-        <div className="custom-scroll" style={{ maxHeight: '380px', border: '1px solid var(--border-color-default)', borderRadius: '8px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+        <div className="custom-scroll" style={{ maxHeight: '380px', border: '1px solid var(--border-color-default)', borderRadius: '8px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left', background: 'var(--bg-qualifying-header)' }}>
                 <th style={{ padding: '0.6rem 1rem', color: 'var(--text-muted)' }}>{t.pos}</th>
@@ -986,7 +986,7 @@ export default function RaceSimulation({
         </div>
 
         {/* Podium Visual */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '1.5rem', margin: '1rem 0' }}>
+        <div className="podium-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '1.5rem', margin: '1rem 0' }}>
           {podium[1] && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.5rem', maxWidth: '100px' }}>{podium[1].name}</div>
@@ -1068,8 +1068,8 @@ export default function RaceSimulation({
           </p>
         </div>
 
-        <div className="custom-scroll" style={{ maxHeight: '250px', border: '1px solid var(--border-color-default)', borderRadius: '8px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+        <div className="custom-scroll" style={{ maxHeight: '250px', border: '1px solid var(--border-color-default)', borderRadius: '8px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left', background: 'var(--bg-qualifying-header)' }}>
                 <th style={{ padding: '0.5rem 1rem', color: 'var(--text-muted)' }}>{t.pos}</th>
@@ -1125,16 +1125,7 @@ export default function RaceSimulation({
     return (
       <div className="container animate-fadeIn" style={{ padding: 0, maxWidth: '1240px' }}>
         {/* Info header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          background: 'var(--bg-qualifying-header)',
-          padding: '0.8rem 1.2rem',
-          borderRadius: '10px',
-          border: '1px solid var(--border-color-default)'
-        }}>
+        <div className="sim-header-container">
           <div>
             <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span>{lang === 'pt' ? `GP DO ${track.country.toUpperCase()}` : `${(nationalityMap[track.country] || track.country).toUpperCase()} GP`}</span>
@@ -1187,13 +1178,9 @@ export default function RaceSimulation({
         </div>
 
         {/* 3-Column Grid for Positions, Radio/Telemetry, and Controls */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.25rem'
-        }}>
+        <div className="sim-grid">
           {/* COLUMN 1: Live Positions */}
-          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '520px' }}>
+          <div className="panel sim-col-1" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 className="text-numeric" style={{ fontSize: '0.95rem', color: 'var(--text-bright)', borderBottom: '1px solid var(--border-color-default)', paddingBottom: '0.5rem' }}>
               {t.gridPositions}
             </h3>
@@ -1254,8 +1241,8 @@ export default function RaceSimulation({
             </div>
 
             {/* Complete classification table */}
-            <div className="custom-scroll" style={{ flex: 1, maxHeight: '250px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+            <div className="custom-scroll" style={{ flex: 1, maxHeight: '250px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '450px', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
                     <th style={{ color: 'var(--text-muted)' }}>{t.pos}</th>
@@ -1310,7 +1297,7 @@ export default function RaceSimulation({
           </div>
 
           {/* COLUMN 2: Beautiful Pit Wall Radio Walkie-Talkie UI (Requested / Redesigned!) */}
-          <div className="panel" style={{ 
+          <div className="panel sim-col-2" style={{ 
             position: 'relative',
             border: '2px solid #282f3d',
             borderTop: '6px solid var(--f1-red)', 
@@ -1320,7 +1307,6 @@ export default function RaceSimulation({
             flexDirection: 'column',
             justifyContent: 'space-between',
             borderRadius: '12px',
-            minHeight: '520px',
             boxShadow: '0 10px 30px rgba(0,0,0,0.6)'
           }}>
             {/* Walkie-Talkie Antenna Stick effect */}
@@ -1467,7 +1453,7 @@ export default function RaceSimulation({
           </div>
 
           {/* COLUMN 3: Player Controls & Tire wear */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minHeight: '520px' }}>
+          <div className="sim-col-3" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {/* Driver 1 Controller */}
             {player1 && !player1.dNF ? (
               <div className="panel" style={{ 

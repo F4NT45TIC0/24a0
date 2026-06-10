@@ -64,7 +64,7 @@ export default function SeasonSummary({
         {/* Left Column: Standings and Tabs */}
         <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: '500px' }}>
           {/* Tabs header */}
-          <div style={{ 
+          <div className="tab-container" style={{ 
             display: 'flex', 
             borderBottom: '1px solid var(--border-color-default)',
             marginBottom: '1rem',
@@ -97,7 +97,7 @@ export default function SeasonSummary({
           {/* TAB 1: Drivers Standings */}
           {activeTab === 'drivers' && (
             <div className="custom-scroll" style={{ flex: 1, maxHeight: '420px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+              <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
                     <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>{t.pos}</th>
@@ -139,7 +139,7 @@ export default function SeasonSummary({
           {/* TAB 2: Constructors Standings */}
           {activeTab === 'constructors' && (
             <div className="custom-scroll" style={{ flex: 1, maxHeight: '420px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+              <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border-color-default)', color: 'var(--text-muted)', textAlign: 'left' }}>
                     <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>{t.pos}</th>
