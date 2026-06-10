@@ -624,50 +624,23 @@ export default function App() {
               </button>
 
               {/* Custom Telemetry Volume Control */}
-              <div className="telemetry-volume-wrapper" style={{
+              <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '0.6rem', 
+                gap: '0.5rem', 
                 background: 'var(--bg-qualifying-header)', 
-                padding: '0.4rem 0.8rem', 
+                padding: '0.4rem 0.75rem', 
+                fontSize: '0.75rem', 
                 border: '1px solid var(--border-color-default)', 
                 borderRadius: 'var(--border-radius)',
                 transform: 'skewX(-12deg)',
                 color: 'var(--text-main)',
-                height: '32px'
+                height: '29px'
               }}>
                 <div style={{ transform: 'skewX(12deg)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
+                  <span style={{ fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
                     {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
                   </span>
-                  
-                  {/* Telemetry Tachometer-style visualizer bars */}
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '14px', marginRight: '4px' }}>
-                    {Array.from({ length: 8 }).map((_, idx) => {
-                      const barVolumeThresh = (idx + 1) / 8;
-                      const isActive = volume >= barVolumeThresh - 0.05;
-                      let barColor = 'rgba(255, 255, 255, 0.08)';
-                      if (isActive) {
-                        if (idx < 3) barColor = 'var(--green-neon)';
-                        else if (idx < 6) barColor = 'var(--yellow-neon)';
-                        else barColor = 'var(--f1-red)';
-                      }
-                      return (
-                        <div 
-                          key={idx}
-                          style={{
-                            width: '3px',
-                            height: `${5 + idx * 1.2}px`,
-                            backgroundColor: barColor,
-                            borderRadius: '1px',
-                            transition: 'background-color 0.1s ease, box-shadow 0.1s ease',
-                            boxShadow: isActive ? `0 0 5px ${barColor}` : 'none'
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-
                   <input 
                     type="range" 
                     min="0" 
@@ -687,7 +660,7 @@ export default function App() {
                       margin: 0
                     }}
                   />
-                  <span className="text-numeric" style={{ fontSize: '0.75rem', fontWeight: 'bold', minWidth: '32px', textAlign: 'right', color: 'var(--text-bright)' }}>
+                  <span className="text-numeric" style={{ fontSize: '0.7rem', fontWeight: 'bold', minWidth: '28px', textAlign: 'right', color: 'var(--text-bright)' }}>
                     {Math.round(volume * 100)}%
                   </span>
                 </div>
