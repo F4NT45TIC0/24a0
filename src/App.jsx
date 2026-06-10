@@ -579,29 +579,47 @@ export default function App() {
             top: 0,
             zIndex: 50
           }}>
-            <div 
-              onClick={handleRestartGame} 
-              style={{ 
-                cursor: 'pointer', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem' 
-              }}
-            >
-              <span className="text-numeric" style={{ 
-                fontSize: '1.6rem', 
-                fontWeight: 900, 
-                color: 'var(--f1-red)',
-                letterSpacing: '1px',
-                textShadow: '0 0 10px rgba(225,6,0,0.3)'
-              }}>
-                {t.appTitle}
-              </span>
-              <span style={{ fontSize: '0.75rem', background: 'var(--bg-qualifying-header)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
-                {t.appSubtitle}
-              </span>
+            {/* Left Section: Logo + Team Details (to prevent layout shifts on the right controls) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div 
+                onClick={handleRestartGame} 
+                style={{ 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem' 
+                }}
+              >
+                <span className="text-numeric" style={{ 
+                  fontSize: '1.6rem', 
+                  fontWeight: 900, 
+                  color: 'var(--f1-red)',
+                  letterSpacing: '1px',
+                  textShadow: '0 0 10px rgba(225,6,0,0.3)'
+                }}>
+                  {t.appTitle}
+                </span>
+                <span style={{ fontSize: '0.75rem', background: 'var(--bg-qualifying-header)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
+                  {t.appSubtitle}
+                </span>
+              </div>
+
+              {screen !== 'menu' && team.driver1 && (
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '1.5rem', 
+                  fontSize: '0.8rem', 
+                  color: 'var(--text-muted)',
+                  borderLeft: '1px solid var(--border-color-default)',
+                  paddingLeft: '1.5rem'
+                }}>
+                  <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
+                  <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
+                </div>
+              )}
             </div>
 
+            {/* Right Section: Language, Theme, Simple Volume, Support PIX */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <button 
                 className="theme-toggle" 
@@ -623,47 +641,33 @@ export default function App() {
                 </span>
               </button>
 
-              {/* Custom Telemetry Volume Control */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem', 
-                background: 'var(--bg-qualifying-header)', 
-                padding: '0.4rem 0.75rem', 
-                fontSize: '0.75rem', 
-                border: '1px solid var(--border-color-default)', 
-                borderRadius: 'var(--border-radius)',
-                transform: 'skewX(-12deg)',
-                color: 'var(--text-main)',
-                height: '29px'
-              }}>
-                <div style={{ transform: 'skewX(12deg)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
-                    {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
-                  </span>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="1" 
-                    step="0.01" 
-                    value={volume} 
-                    onChange={handleVolumeChange}
-                    title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
-                    style={{
-                      width: '60px',
-                      height: '4px',
-                      accentColor: 'var(--f1-red)',
-                      cursor: 'pointer',
-                      background: 'var(--border-color-default)',
-                      border: 'none',
-                      outline: 'none',
-                      margin: 0
-                    }}
-                  />
-                  <span className="text-numeric" style={{ fontSize: '0.7rem', fontWeight: 'bold', minWidth: '28px', textAlign: 'right', color: 'var(--text-bright)' }}>
-                    {Math.round(volume * 100)}%
-                  </span>
-                </div>
+              {/* Simple Volume Control */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
+                <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
+                  {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
+                </span>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.01" 
+                  value={volume} 
+                  onChange={handleVolumeChange}
+                  title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
+                  style={{
+                    width: '60px',
+                    height: '4px',
+                    accentColor: 'var(--f1-red)',
+                    cursor: 'pointer',
+                    background: 'var(--border-color-default)',
+                    border: 'none',
+                    outline: 'none',
+                    margin: 0
+                  }}
+                />
+                <span className="text-numeric" style={{ fontSize: '0.75rem', fontWeight: 'bold', minWidth: '32px', textAlign: 'right', color: 'var(--text-bright)' }}>
+                  {Math.round(volume * 100)}%
+                </span>
               </div>
 
               <button 
@@ -680,13 +684,6 @@ export default function App() {
               >
                 <span className="btn-content">{t.supportBtn}</span>
               </button>
-              
-              {screen !== 'menu' && team.driver1 && (
-                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <div>{t.car}: <strong style={{ color: 'var(--text-bright)' }}>{team.chassis?.name}</strong></div>
-                  <div>{t.drivers}: <strong style={{ color: 'var(--text-bright)' }}>{team.driver1?.name} / {team.driver2?.name}</strong></div>
-                </div>
-              )}
             </div>
           </header>
 
