@@ -94,7 +94,7 @@ export default function RaceSimulation({
             setTimeout(() => {
               setPhase('qualifying');
               runQualifying();
-            }, 400); // Fast transition after all lights are lit
+            }, 1000);
             return prev;
           }
         });
@@ -103,7 +103,7 @@ export default function RaceSimulation({
     }
   }, [phase]);
 
-  // 2. Safe React Effect Autoplay system (Solves the infinite closure bug!)
+  // 2. Safe React Effect Autoplay system
   useEffect(() => {
     let timer;
     if (isPlaying && phase === 'race' && !activeAlert) {
@@ -114,6 +114,23 @@ export default function RaceSimulation({
     return () => {
       if (timer) clearTimeout(timer);
     };
+  }, [isPlaying, currentLap, phase, activeAlert, d1Tyre, d2Tyre, d1Posture, d2Posture, d1PitRequest, d2PitRequest, safetyCarStatus]);
+
+  // Keyboard shortcut listener: Space or Enter to run next lap (Requested!)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (activeAlert || phase !== 'race') return;
+
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault(); // Stop scrolling under Space
+        if (!isPlaying) {
+          runInteractiveLap();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, currentLap, phase, activeAlert, d1Tyre, d2Tyre, d1Posture, d2Posture, d1PitRequest, d2PitRequest, safetyCarStatus]);
 
   // Set up weather forecast
@@ -272,7 +289,7 @@ export default function RaceSimulation({
           const reason = getRandomDNFReason(drv);
           simulationLogs.push(`💥 Volta ${lap}: ${drv.name} está FORA da corrida! (Razão: ${reason})`);
           
-          // Trigger Safety Car (50% chance upon DNF)
+          // Trigger Safety Car (60% chance upon DNF)
           if (simSCStatus === 'none' && Math.random() < 0.6) {
             simSCStatus = Math.random() < 0.5 ? 'sc' : 'vsc';
             simulationLogs.push(`🚨 Volta ${lap}: ${simSCStatus === 'sc' ? 'SAFETY CAR' : 'VSC'} DEPLOYED para limpar os destroços de ${drv.name}!`);
@@ -345,7 +362,6 @@ export default function RaceSimulation({
 
       // Bunch up the pack if Safety Car is deployed (NOT VSC)
       if (simSCStatus === 'sc') {
-        // Bunch cars: leader keeps their time, each car behind is 1.2s behind the car in front
         let sortedActive = currentStates.filter(d => !d.dNF).sort((a, b) => a.totalTime - b.totalTime);
         let leaderTime = sortedActive[0]?.totalTime || 0;
         
@@ -361,7 +377,7 @@ export default function RaceSimulation({
 
       // VSC or Safety Car turn countdown
       if (simSCStatus !== 'none') {
-        simSCStatus = 'none'; // quick sim just keeps SC active for 1 lap
+        simSCStatus = 'none';
         simulationLogs.push(`🟢 Volta ${lap}: Pista liberada! CORRIDA REINICIADA!`);
       }
 
@@ -488,7 +504,6 @@ export default function RaceSimulation({
       simWeather = 'chuva';
       setWeather('chuva');
       lapLogs.push(`🌧️ VOLTA ${currentLap}: Nuvens cobrem a pista... COMEÇOU A CHOVER!`);
-      // Trigger full screen alert
       setActiveAlert({
         title: "🌧️ ALERTA DE CHUVA!",
         message: "A pista está molhada. Carros com pneus slicks perderão muito tempo e correm alto risco de bater! Planeje paradas para pneu de Chuva (W).",
@@ -554,7 +569,7 @@ export default function RaceSimulation({
           setIsPlaying(false);
         } else {
           // AI puncture
-          drv.tyreWear = 99; // force high wear/slow pace
+          drv.tyreWear = 99;
         }
         lapLogs.push(`⚠️ INCIDENTE: Pneu furado para ${drv.name}! Andando em ritmo lento.`);
       }
@@ -627,7 +642,6 @@ export default function RaceSimulation({
           setD2Puncture(false);
         }
 
-        // Pit stops are cheaper under Safety Car (10s base instead of 20s)
         const pitstopBase = scActiveThisLap ? 10 : 20;
         const principalBonus = team.principal.attributes.pitstops / 10;
         const pitEfficiency = 11 - principalBonus;
@@ -677,7 +691,6 @@ export default function RaceSimulation({
             });
             setIsPlaying(false);
           } else {
-            // Just a player alert if a player driver retired
             if (drv.isPlayer) {
               setActiveAlert({
                 title: "💥 ABANDONO DE CORRIDA!",
@@ -725,9 +738,9 @@ export default function RaceSimulation({
       
       const newWear = isPunctured ? 99 : drv.tyreWear + tyreWearInc;
 
-      // Base Pace (Pace is slower if VSC/SC is active)
+      // Base Pace
       let trackBase = 85;
-      if (newSCStatus === 'sc') trackBase = 125; // benched pacing
+      if (newSCStatus === 'sc') trackBase = 125;
       else if (newSCStatus === 'vsc') trackBase = 105;
 
       const speedBonus = drv.isPlayer ? (drv.driverKey === 'driver1' ? bonuses.driver1Speed : bonuses.driver2Speed) : 0;
@@ -741,7 +754,7 @@ export default function RaceSimulation({
       lapTime += (newWear * (newSCStatus !== 'none' ? 0.02 : 0.08));
       
       if (isPunctured) {
-        lapTime += 30; // Lose massive time with puncture
+        lapTime += 30;
       }
 
       // Posture
@@ -760,7 +773,7 @@ export default function RaceSimulation({
       };
     });
 
-    // BUNCH UP THE PACK IN CASE OF SAFETY CAR (Not VSC)
+    // BUNCH UP THE PACK IN CASE OF SAFETY CAR
     if (newSCStatus === 'sc' && scTriggeredThisLap) {
       let sortedActive = currentStates.filter(d => !d.dNF).sort((a, b) => a.totalTime - b.totalTime);
       let leaderTime = sortedActive[0]?.totalTime || 0;
@@ -770,7 +783,7 @@ export default function RaceSimulation({
         const activeIdx = sortedActive.findIndex(sa => sa.id === d.id);
         return {
           ...d,
-          totalTime: leaderTime + (activeIdx * 1.2) // bunch up closely!
+          totalTime: leaderTime + (activeIdx * 1.2)
         };
       });
       lapLogs.push("🚨 RÁDIO: Pelotão agrupado sob bandeira amarela.");
@@ -780,22 +793,20 @@ export default function RaceSimulation({
     const updatedPositions = updateRacePositions(currentStates, currentLap, lapLogs);
     setDriverStates(updatedPositions);
     
-    // Add lap summary comments
     const leader = updatedPositions[0];
     const player1 = updatedPositions.find(d => d.id === 'player_d1');
     const player2 = updatedPositions.find(d => d.id === 'player_d2');
     
     let summaryComment = `🏁 Volta ${currentLap} Concluída: Liderança por ${leader.name} (${leader.teamName}).`;
     if (player1 && !player1.dNF) {
-      summaryComment += ` P1: ${player1.name} em P${player1.pos} (${player1.tyre}, ${player1.tyreWear.toFixed(0)}% de desgaste).`;
+      summaryComment += ` P1: ${player1.name} em P${player1.pos} (${player1.tyre}, ${player1.tyreWear.toFixed(0)}% desgaste).`;
     }
     if (player2 && !player2.dNF) {
-      summaryComment += ` P2: ${player2.name} em P${player2.pos} (${player2.tyre}, ${player2.tyreWear.toFixed(0)}% de desgaste).`;
+      summaryComment += ` P2: ${player2.name} em P${player2.pos} (${player2.tyre}, ${player2.tyreWear.toFixed(0)}% desgaste).`;
     }
 
     setLog(prev => [...prev, ...lapLogs, summaryComment]);
 
-    // Advance lap or finish
     if (currentLap < totalLaps) {
       setCurrentLap(prev => prev + 1);
     } else {
@@ -1036,14 +1047,14 @@ export default function RaceSimulation({
     );
   };
 
-  // Render Interactive Sim Interface
+  // Render Interactive Sim Interface (3-Column Layout with Pit Wall Radio walkie-talkie aesthetic!)
   const renderInteractiveRace = () => {
     const orderedDrivers = [...driverStates].sort((a, b) => a.pos - b.pos);
     const player1 = driverStates.find(d => d.id === 'player_d1');
     const player2 = driverStates.find(d => d.id === 'player_d2');
 
     return (
-      <div className="container animate-fadeIn" style={{ padding: 0, maxWidth: '1200px' }}>
+      <div className="container animate-fadeIn" style={{ padding: 0, maxWidth: '1240px' }}>
         {/* Info header */}
         <div style={{
           display: 'flex',
@@ -1056,112 +1067,65 @@ export default function RaceSimulation({
           border: '1px solid rgba(255,255,255,0.05)'
         }}>
           <div>
-            <h2 className="text-numeric" style={{ fontSize: '1.5rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span>GP DO {track.country.toUpperCase()}</span>
               {weather === 'chuva' ? (
-                <span className="pulse-effect" style={{ fontSize: '0.95rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>🌧️ CHUVA</span>
+                <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>🌧️ CHUVA</span>
               ) : (
-                <span style={{ fontSize: '0.95rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>☀️ SECO</span>
+                <span style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>☀️ SECO</span>
               )}
 
               {safetyCarStatus === 'sc' && (
-                <span className="flash-effect" style={{ fontSize: '0.95rem', background: 'var(--f1-red)', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>🚨 SAFETY CAR</span>
+                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--f1-red)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>🚨 SAFETY CAR</span>
               )}
               {safetyCarStatus === 'vsc' && (
-                <span className="flash-effect" style={{ fontSize: '0.95rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>⚠️ VSC</span>
+                <span className="flash-effect" style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>⚠️ VSC</span>
               )}
             </h2>
             <p style={{ color: '#8a92a6', fontSize: '0.85rem', marginTop: '0.1rem' }}>
-              Circuito: <strong style={{ color: '#fff' }}>{track.name}</strong> • Volta <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '1rem' }}>{currentLap}</strong> de {totalLaps}
+              Circuito: <strong style={{ color: '#fff' }}>{track.name}</strong> • Volta <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>{currentLap}</strong> de {totalLaps}
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button 
-              className={`btn ${isPlaying ? 'btn-danger' : 'btn-primary'}`} 
-              onClick={togglePlay}
-              style={{ minWidth: '130px' }}
-            >
-              {isPlaying ? '⏸️ Pausar' : '▶️ Auto-Play'}
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={runInteractiveLap}
-              disabled={isPlaying}
-              style={{ minWidth: '130px' }}
-            >
-              ➡️ Próx. Volta
-            </button>
-          </div>
-        </div>
-
-        {/* Central Team Radio Feed (Aesthetic placement & visibility improved!) */}
-        <div className="panel" style={{ 
-          marginBottom: '1.5rem', 
-          borderLeft: '4px solid var(--f1-red)', 
-          background: 'linear-gradient(to right, #090a0f, #12151d)',
-          padding: '1rem' 
-        }}>
-          <h3 className="text-numeric" style={{ fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <span>📡 TELEMETRIA & RÁDIO DA EQUIPE (AO VIVO)</span>
-          </h3>
-          <div 
-            className="custom-scroll" 
-            style={{ 
-              background: 'rgba(0,0,0,0.5)', 
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '6px',
-              padding: '0.8rem 1.2rem',
-              fontSize: '0.85rem',
-              height: '150px',
-              overflowY: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.4rem',
-              boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.8)',
-              fontFamily: 'monospace'
-            }}
-          >
-            {log.map((line, idx) => {
-              let color = '#d2d6dd';
-              let weight = 'normal';
-              let prefix = '';
-
-              if (line.includes('🚨') || line.includes('VSC') || line.includes('SAFETY CAR')) {
-                color = 'var(--yellow-neon)';
-                weight = 'bold';
-              } else if (line.includes('🌧️') || line.includes('CHOVER')) {
-                color = 'var(--blue-neon)';
-                weight = 'bold';
-              } else if (line.includes('💥') || line.includes('Abandono') || line.includes('FORA')) {
-                color = 'var(--f1-red)';
-                weight = 'bold';
-              } else if (line.includes('🔧') || line.includes('Pitstop')) {
-                color = 'var(--green-neon)';
-              } else if (line.includes('🏁')) {
-                color = '#fff';
-                weight = '500';
-              } else if (line.includes('🔥') || line.includes('SUPERAQUECENDO')) {
-                color = '#ff6c00';
-                weight = 'bold';
-              }
-
-              return (
-                <div key={idx} style={{ color, fontWeight: weight, display: 'flex', gap: '0.5rem' }}>
-                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>[{idx+1}]</span>
-                  <span>{line}</span>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div style={{ textAlign: 'right', marginRight: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  className={`btn ${isPlaying ? 'btn-danger' : 'btn-primary'}`} 
+                  onClick={togglePlay}
+                  style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                >
+                  {isPlaying ? '⏸️ Pausar' : '▶️ Auto-Play'}
+                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={runInteractiveLap}
+                    disabled={isPlaying}
+                    style={{ minWidth: '120px', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                  >
+                    ➡️ Próx. Volta
+                  </button>
+                  {!isPlaying && (
+                    <span style={{ fontSize: '0.65rem', color: '#8a92a6', marginTop: '0.25rem', opacity: 0.8 }}>
+                      [Espaço / Enter]
+                    </span>
+                  )}
                 </div>
-              );
-            })}
-            <div ref={radioLogEndRef} />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="dashboard-grid">
-          {/* Left Column: Live Positions and Gaps */}
-          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h3 className="text-numeric" style={{ fontSize: '1rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem' }}>
+        {/* 3-Column Grid for Positions, Radio/Telemetry, and Controls */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gap: '1.25rem'
+        }}>
+          {/* COLUMN 1: Live Positions */}
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '520px' }}>
+            <h3 className="text-numeric" style={{ fontSize: '0.95rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem' }}>
               📊 POSIÇÕES DO GRID
             </h3>
 
@@ -1170,19 +1134,19 @@ export default function RaceSimulation({
               <div style={{ fontSize: '0.75rem', color: '#8a92a6', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Posições na Pista</div>
               {orderedDrivers.slice(0, 5).map(drv => (
                 <div key={drv.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', minWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{drv.name}</span>
+                  <span style={{ fontSize: '0.75rem', minWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{drv.name.split(' ')[1] || drv.name}</span>
                   <div className="race-progress-bar">
                     {!drv.dNF && (
                       <div 
                         className={`car-indicator ${drv.isPlayer ? 'player' : ''}`}
-                        style={{ left: `${(drv.pos === 1 ? 95 : 95 - (drv.pos * 4.5))}%` }}
+                        style={{ left: `${(drv.pos === 1 ? 95 : 95 - (drv.pos * 5.2))}%` }}
                       >
                         {drv.pos}
                       </div>
                     )}
                     {drv.dNF && (
                       <div style={{ color: 'var(--f1-red)', fontSize: '0.7rem', paddingLeft: '1rem', lineHeight: '32px', fontWeight: 'bold' }}>
-                        💥 QUEBROU (DNF)
+                        💥 DNF
                       </div>
                     )}
                   </div>
@@ -1190,12 +1154,12 @@ export default function RaceSimulation({
               ))}
               {player1 && player1.pos > 5 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', minWidth: '100px', color: 'var(--green-neon)', fontWeight: 'bold' }}>{player1.name}</span>
+                  <span style={{ fontSize: '0.75rem', minWidth: '80px', color: 'var(--green-neon)', fontWeight: 'bold' }}>{player1.name.split(' ')[1]}</span>
                   <div className="race-progress-bar">
                     {!player1.dNF && (
                       <div 
                         className="car-indicator player"
-                        style={{ left: `${(95 - (player1.pos * 4.5))}%` }}
+                        style={{ left: `${(95 - (player1.pos * 5.2))}%` }}
                       >
                         {player1.pos}
                       </div>
@@ -1205,12 +1169,12 @@ export default function RaceSimulation({
               )}
               {player2 && player2.pos > 5 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', minWidth: '100px', color: 'var(--green-neon)', fontWeight: 'bold' }}>{player2.name}</span>
+                  <span style={{ fontSize: '0.75rem', minWidth: '80px', color: 'var(--green-neon)', fontWeight: 'bold' }}>{player2.name.split(' ')[1]}</span>
                   <div className="race-progress-bar">
                     {!player2.dNF && (
                       <div 
                         className="car-indicator player"
-                        style={{ left: `${(95 - (player2.pos * 4.5))}%` }}
+                        style={{ left: `${(95 - (player2.pos * 5.2))}%` }}
                       >
                         {player2.pos}
                       </div>
@@ -1221,7 +1185,7 @@ export default function RaceSimulation({
             </div>
 
             {/* Complete classification table */}
-            <div className="custom-scroll" style={{ flex: 1, maxHeight: '200px' }}>
+            <div className="custom-scroll" style={{ flex: 1, maxHeight: '250px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#8a92a6', textAlign: 'left' }}>
@@ -1276,57 +1240,208 @@ export default function RaceSimulation({
             </div>
           </div>
 
-          {/* Right Column: Player Controls & Tire wear */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* COLUMN 2: Beautiful Pit Wall Radio Walkie-Talkie UI (Requested / Redesigned!) */}
+          <div className="panel" style={{ 
+            position: 'relative',
+            border: '2px solid #282f3d',
+            borderTop: '6px solid var(--f1-red)', 
+            background: 'linear-gradient(to bottom, #11141c, #0a0b0f)',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            borderRadius: '12px',
+            minHeight: '520px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.6)'
+          }}>
+            {/* Walkie-Talkie Antenna Stick effect */}
+            <div style={{
+              position: 'absolute',
+              top: '-45px',
+              left: '20px',
+              width: '12px',
+              height: '40px',
+              background: '#202632',
+              borderRadius: '4px 4px 0 0',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 -2px 10px rgba(0,0,0,0.5)'
+            }} />
+            
+            {/* Volume Knobs effect */}
+            <div style={{
+              position: 'absolute',
+              top: '-12px',
+              right: '30px',
+              width: '24px',
+              height: '8px',
+              background: '#343a40',
+              borderRadius: '3px 3px 0 0',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '-12px',
+              right: '65px',
+              width: '18px',
+              height: '8px',
+              background: '#343a40',
+              borderRadius: '3px 3px 0 0',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }} />
+
+            {/* Radio status banner */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                <span className="text-numeric" style={{ fontSize: '0.8rem', color: '#ff1801', fontWeight: 900, letterSpacing: '1px' }}>
+                  📻 PIT WALL RADIO
+                </span>
+                
+                {/* Pulsing signal LED */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ fontSize: '0.65rem', color: '#8a92a6', textTransform: 'uppercase' }}>Sinal</span>
+                  <div 
+                    className={isPlaying ? 'flash-effect' : ''} 
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: safetyCarStatus !== 'none' ? 'var(--yellow-neon)' : isPlaying ? 'var(--green-neon)' : '#ff4a4a',
+                      boxShadow: `0 0 10px ${safetyCarStatus !== 'none' ? 'var(--yellow-neon)' : isPlaying ? 'var(--green-neon)' : '#ff4a4a'}`
+                    }}
+                  />
+                </div>
+              </div>
+              
+              {/* Speaker Grille dots pattern */}
+              <div style={{
+                height: '35px',
+                width: '100%',
+                background: 'radial-gradient(circle, #252b36 20%, transparent 20%)',
+                backgroundSize: '8px 8px',
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                opacity: 0.6
+              }} />
+            </div>
+
+            {/* walkie talkie messages feed */}
+            <div 
+              className="custom-scroll" 
+              style={{ 
+                background: '#040508', 
+                border: '2px solid #1a202c',
+                borderRadius: '8px',
+                padding: '0.8rem 1rem',
+                fontSize: '0.82rem',
+                flex: 1,
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+                boxShadow: 'inset 0 4px 15px rgba(0,0,0,0.9)',
+                fontFamily: 'monospace',
+                maxHeight: '340px'
+              }}
+            >
+              {log.map((line, idx) => {
+                let color = '#d2d6dd';
+                let weight = 'normal';
+
+                if (line.includes('🚨') || line.includes('VSC') || line.includes('SAFETY CAR')) {
+                  color = 'var(--yellow-neon)';
+                  weight = 'bold';
+                } else if (line.includes('🌧️') || line.includes('CHOVER')) {
+                  color = 'var(--blue-neon)';
+                  weight = 'bold';
+                } else if (line.includes('💥') || line.includes('Abandono') || line.includes('FORA')) {
+                  color = 'var(--f1-red)';
+                  weight = 'bold';
+                } else if (line.includes('🔧') || line.includes('Pitstop') || line.includes('BOX')) {
+                  color = 'var(--green-neon)';
+                } else if (line.includes('🏁')) {
+                  color = '#fff';
+                  weight = 'bold';
+                } else if (line.includes('🔥') || line.includes('SUPERAQUECENDO')) {
+                  color = '#ff6c00';
+                  weight = 'bold';
+                }
+
+                return (
+                  <div key={idx} style={{ color, fontWeight: weight, display: 'flex', gap: '0.4rem', lineHeight: 1.25 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.15)' }}>&gt;</span>
+                    <span>{line}</span>
+                  </div>
+                );
+              })}
+              <div ref={radioLogEndRef} />
+            </div>
+
+            {/* Help guidelines at the bottom of the radio */}
+            <div style={{ 
+              marginTop: '1rem', 
+              paddingTop: '0.8rem', 
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              fontSize: '0.72rem', 
+              color: '#8a92a6',
+              textAlign: 'center',
+              lineHeight: '1.3'
+            }}>
+              <span>🎙️ Pressione <strong>Espaço</strong> ou <strong>Enter</strong> na pista seca para simular o próximo giro de cronômetro.</span>
+            </div>
+          </div>
+
+          {/* COLUMN 3: Player Controls & Tire wear */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minHeight: '520px' }}>
             {/* Driver 1 Controller */}
             {player1 && !player1.dNF ? (
               <div className="panel" style={{ 
                 borderLeft: '4px solid var(--green-neon)', 
-                padding: '1.2rem',
+                padding: '1.1rem',
                 boxShadow: d1Overheating ? '0 0 15px rgba(255, 108, 0, 0.2)' : 'none',
-                borderColor: d1Overheating ? '#ff6c00' : 'var(--green-neon)'
+                borderColor: d1Overheating ? '#ff6c00' : 'var(--green-neon)',
+                flex: 1
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h4 style={{ color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
+                <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 'bold' }}>
                     {player1.name}
                   </h4>
                   <span className="text-numeric" style={{ 
-                    fontSize: '1.1rem', 
+                    fontSize: '1rem', 
                     color: 'var(--yellow-neon)', 
                     fontWeight: 'bold', 
                     background: 'rgba(0,0,0,0.3)', 
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '6px'
+                    padding: '0.15rem 0.4rem',
+                    borderRadius: '5px'
                   }}>
                     P{player1.pos}
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8a92a6', marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#8a92a6', marginBottom: '0.6rem' }}>
                   <span>Pneu: <strong style={{ color: '#fff' }}>{player1.tyre}</strong> ({player1.tyreWear.toFixed(0)}% desgaste)</span>
                   <span>Modo: <strong style={{ color: '#fff' }}>{player1.posture === 'aggressive' ? 'Agressivo' : player1.posture === 'conservative' ? 'Econômico' : 'Equilibrado'}</strong></span>
                 </div>
 
                 {d1Overheating && (
-                  <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
                     ⚠️ ALERTA: Motor superaquecendo! Mude p/ Econômica!
                   </div>
                 )}
 
                 {/* Posture select */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontSize: '0.75rem', color: '#8a92a6', display: 'block', marginBottom: '0.25rem' }}>Mudar Postura:</label>
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <div style={{ marginBottom: '0.8rem' }}>
+                  <label style={{ fontSize: '0.72rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Mudar Postura:</label>
+                  <div style={{ display: 'flex', gap: '0.2rem' }}>
                     <button 
                       className={`btn ${d1Posture === 'aggressive' ? 'btn-danger' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
+                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
                       onClick={() => setD1Posture('aggressive')}
                     >
                       Agressiva
                     </button>
                     <button 
                       className={`btn ${d1Posture === 'balanced' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
+                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
                       onClick={() => setD1Posture('balanced')}
                     >
                       Equilibrada
@@ -1335,8 +1450,8 @@ export default function RaceSimulation({
                       className={`btn ${d1Posture === 'conservative' ? 'btn-secondary' : 'btn-secondary'}`}
                       style={{ 
                         flex: 1, 
-                        padding: '0.35rem 0.5rem', 
-                        fontSize: '0.7rem',
+                        padding: '0.3rem 0.4rem', 
+                        fontSize: '0.68rem',
                         borderColor: d1Posture === 'conservative' ? 'var(--blue-neon)' : 'rgba(255,255,255,0.2)',
                         color: d1Posture === 'conservative' ? 'var(--blue-neon)' : '#fff'
                       }}
@@ -1348,20 +1463,20 @@ export default function RaceSimulation({
                 </div>
 
                 {/* Pitstop setup */}
-                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.6rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: d1PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d1PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
                     <input 
                       type="checkbox" 
                       checked={d1PitRequest}
                       onChange={(e) => setD1PitRequest(e.target.checked)}
-                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      style={{ width: '15px', height: '15px', cursor: 'pointer' }}
                     />
                   </div>
                   
                   {d1PitRequest && (
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Pneu p/ próxima perna:</span>
+                    <div style={{ marginTop: '0.4rem' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#8a92a6', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
                       <div style={{ display: 'flex', gap: '0.2rem' }}>
                         {['S', 'M', 'H', 'W'].map(t => (
                           <button 
@@ -1369,8 +1484,8 @@ export default function RaceSimulation({
                             onClick={() => setD1SelectedNextTyre(t)}
                             style={{
                               flex: 1,
-                              padding: '0.25rem',
-                              fontSize: '0.75rem',
+                              padding: '0.2rem',
+                              fontSize: '0.72rem',
                               fontWeight: 'bold',
                               background: d1SelectedNextTyre === t ? 'var(--f1-red)' : 'rgba(255,255,255,0.05)',
                               border: '1px solid rgba(255,255,255,0.1)',
@@ -1388,11 +1503,11 @@ export default function RaceSimulation({
                 </div>
               </div>
             ) : (
-              <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)' }}>
+              <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)', flex: 1 }}>
                 <h4 style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>
                   {player1?.name} — DNF (Abandono)
                 </h4>
-                <p style={{ fontSize: '0.75rem', color: '#8a92a6' }}>Razão: {player1?.dnfReason}</p>
+                <p style={{ fontSize: '0.72rem', color: '#8a92a6' }}>Razão: {player1?.dnfReason}</p>
               </div>
             )}
 
@@ -1400,51 +1515,52 @@ export default function RaceSimulation({
             {player2 && !player2.dNF ? (
               <div className="panel" style={{ 
                 borderLeft: '4px solid var(--green-neon)', 
-                padding: '1.2rem',
+                padding: '1.1rem',
                 boxShadow: d2Overheating ? '0 0 15px rgba(255, 108, 0, 0.2)' : 'none',
-                borderColor: d2Overheating ? '#ff6c00' : 'var(--green-neon)'
+                borderColor: d2Overheating ? '#ff6c00' : 'var(--green-neon)',
+                flex: 1
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h4 style={{ color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
+                <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 'bold' }}>
                     {player2.name}
                   </h4>
                   <span className="text-numeric" style={{ 
-                    fontSize: '1.1rem', 
+                    fontSize: '1rem', 
                     color: 'var(--yellow-neon)', 
                     fontWeight: 'bold', 
                     background: 'rgba(0,0,0,0.3)', 
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '6px'
+                    padding: '0.15rem 0.4rem',
+                    borderRadius: '5px'
                   }}>
                     P{player2.pos}
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8a92a6', marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#8a92a6', marginBottom: '0.6rem' }}>
                   <span>Pneu: <strong style={{ color: '#fff' }}>{player2.tyre}</strong> ({player2.tyreWear.toFixed(0)}% desgaste)</span>
                   <span>Modo: <strong style={{ color: '#fff' }}>{player2.posture === 'aggressive' ? 'Agressivo' : player2.posture === 'conservative' ? 'Econômico' : 'Equilibrado'}</strong></span>
                 </div>
 
                 {d2Overheating && (
-                  <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  <div className="flash-effect" style={{ color: '#ff6c00', fontSize: '0.72rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
                     ⚠️ ALERTA: Motor superaquecendo! Mude p/ Econômica!
                   </div>
                 )}
 
                 {/* Posture select */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontSize: '0.75rem', color: '#8a92a6', display: 'block', marginBottom: '0.25rem' }}>Mudar Postura:</label>
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <div style={{ marginBottom: '0.8rem' }}>
+                  <label style={{ fontSize: '0.72rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Mudar Postura:</label>
+                  <div style={{ display: 'flex', gap: '0.2rem' }}>
                     <button 
                       className={`btn ${d2Posture === 'aggressive' ? 'btn-danger' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
+                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
                       onClick={() => setD2Posture('aggressive')}
                     >
                       Agressiva
                     </button>
                     <button 
                       className={`btn ${d2Posture === 'balanced' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
+                      style={{ flex: 1, padding: '0.3rem 0.4rem', fontSize: '0.68rem' }}
                       onClick={() => setD2Posture('balanced')}
                     >
                       Equilibrada
@@ -1453,8 +1569,8 @@ export default function RaceSimulation({
                       className={`btn ${d2Posture === 'conservative' ? 'btn-secondary' : 'btn-secondary'}`}
                       style={{ 
                         flex: 1, 
-                        padding: '0.35rem 0.5rem', 
-                        fontSize: '0.7rem',
+                        padding: '0.3rem 0.4rem', 
+                        fontSize: '0.68rem',
                         borderColor: d2Posture === 'conservative' ? 'var(--blue-neon)' : 'rgba(255,255,255,0.2)',
                         color: d2Posture === 'conservative' ? 'var(--blue-neon)' : '#fff'
                       }}
@@ -1466,20 +1582,20 @@ export default function RaceSimulation({
                 </div>
 
                 {/* Pitstop setup */}
-                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.6rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: d2PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: d2PitRequest ? 'var(--green-neon)' : '#fff' }}>Chamar Box nesta Volta</span>
                     <input 
                       type="checkbox" 
                       checked={d2PitRequest}
                       onChange={(e) => setD2PitRequest(e.target.checked)}
-                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      style={{ width: '15px', height: '15px', cursor: 'pointer' }}
                     />
                   </div>
                   
                   {d2PitRequest && (
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#8a92a6', display: 'block', marginBottom: '0.2rem' }}>Pneu p/ próxima perna:</span>
+                    <div style={{ marginTop: '0.4rem' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#8a92a6', display: 'block', marginBottom: '0.15rem' }}>Pneu p/ próxima perna:</span>
                       <div style={{ display: 'flex', gap: '0.2rem' }}>
                         {['S', 'M', 'H', 'W'].map(t => (
                           <button 
@@ -1487,8 +1603,8 @@ export default function RaceSimulation({
                             onClick={() => setD2SelectedNextTyre(t)}
                             style={{
                               flex: 1,
-                              padding: '0.25rem',
-                              fontSize: '0.75rem',
+                              padding: '0.2rem',
+                              fontSize: '0.72rem',
                               fontWeight: 'bold',
                               background: d2SelectedNextTyre === t ? 'var(--f1-red)' : 'rgba(255,255,255,0.05)',
                               border: '1px solid rgba(255,255,255,0.1)',
@@ -1506,17 +1622,17 @@ export default function RaceSimulation({
                 </div>
               </div>
             ) : (
-              <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)' }}>
+              <div className="panel" style={{ opacity: 0.5, borderLeft: '4px solid var(--f1-red)', flex: 1 }}>
                 <h4 style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>
                   {player2?.name} — DNF (Abandono)
                 </h4>
-                <p style={{ fontSize: '0.75rem', color: '#8a92a6' }}>Razão: {player2?.dnfReason}</p>
+                <p style={{ fontSize: '0.72rem', color: '#8a92a6' }}>Razão: {player2?.dnfReason}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Full-Screen Critical Event Notification Modal (Requested!) */}
+        {/* Full-Screen Critical Event Notification Modal */}
         {activeAlert && (
           <div className="modal-overlay">
             <div className="modal-content animate-fadeIn" style={{ 
@@ -1555,7 +1671,6 @@ export default function RaceSimulation({
                   className="btn btn-primary"
                   onClick={() => {
                     setActiveAlert(null);
-                    // Leave isPlaying to false so player can make adjustments before resuming
                   }}
                   style={{ minWidth: '150px' }}
                 >
