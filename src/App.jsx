@@ -339,7 +339,25 @@ export default function App() {
     switch (screen) {
       case 'menu':
         return (
-          <div className="container" style={{ maxWidth: '750px', marginTop: '3rem' }}>
+          <div className="container animate-fadeIn" style={{ maxWidth: '750px', marginTop: '3rem', position: 'relative' }}>
+            <video 
+              src="/VideoBackground.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                objectFit: 'cover',
+                zIndex: -1,
+                opacity: 0.15,
+                pointerEvents: 'none'
+              }}
+            />
             <div className="panel animate-fadeIn" style={{ textAlign: 'center', padding: '3.5rem 2rem' }}>
               <span className="text-numeric" style={{ 
                 color: 'var(--f1-red)', 
