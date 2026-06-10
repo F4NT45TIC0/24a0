@@ -30,11 +30,16 @@ export default function App() {
   const audioRef = useRef(null);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('bg_volume');
-    return saved !== null ? parseFloat(saved) : 0.3;
+    if (saved !== null) {
+      const val = parseFloat(saved);
+      // Migration: if saved value is <= 1 (float), convert it to 0..100 scale, else keep it
+      return val <= 1 ? Math.round(val * 100) : val;
+    }
+    return 30;
   });
 
   const handleVolumeChange = (e) => {
-    const val = parseFloat(e.target.value);
+    const val = parseInt(e.target.value, 10);
     setVolume(val);
     localStorage.setItem('bg_volume', val.toString());
   };
@@ -50,7 +55,7 @@ export default function App() {
     video.play().catch(e => console.log("Video autoplay failed:", e));
 
     // 2. Play audio (unmuted)
-    audio.volume = volume;
+    audio.volume = volume / 100;
     
     const startAudio = () => {
       audio.play()
@@ -92,7 +97,7 @@ export default function App() {
   // Sync audio element volume reactively
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = volume;
+      audioRef.current.volume = volume / 100;
     }
   }, [volume]);
 
@@ -643,14 +648,14 @@ export default function App() {
 
               {/* Simple Volume Control */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
-                <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 0.3)}>
-                  {volume === 0 ? '🔇' : volume < 0.4 ? '🔈' : volume < 0.75 ? '🔉' : '🔊'}
+                <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setVolume(v => v > 0 ? 0 : 30)}>
+                  {volume === 0 ? '🔇' : volume < 40 ? '🔈' : volume < 75 ? '🔉' : '🔊'}
                 </span>
                 <input 
                   type="range" 
                   min="0" 
-                  max="1" 
-                  step="0.01" 
+                  max="100" 
+                  step="1" 
                   value={volume} 
                   onChange={handleVolumeChange}
                   title={lang === 'pt' ? 'Volume da Música' : 'Music Volume'}
@@ -666,7 +671,7 @@ export default function App() {
                   }}
                 />
                 <span className="text-numeric" style={{ fontSize: '0.75rem', fontWeight: 'bold', minWidth: '32px', textAlign: 'right', color: 'var(--text-bright)' }}>
-                  {Math.round(volume * 100)}%
+                  {volume}%
                 </span>
               </div>
 
