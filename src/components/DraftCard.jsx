@@ -1,4 +1,5 @@
 import React from 'react';
+import { getLocalItem } from '../data/itemTranslations';
 
 const attributeLabels = {
   // Drivers
@@ -20,10 +21,21 @@ const attributeLabels = {
   development: "Desenvolvimento/P&D"
 };
 
-export default function DraftCard({ item, type, isSelected, onClick, hideAttributes = false }) {
-  if (!item) return null;
+export default function DraftCard({ item: rawItem, type, isSelected, onClick, hideAttributes = false, lang = 'pt' }) {
+  if (!rawItem) return null;
+  
+  const item = getLocalItem(rawItem, lang);
 
-  const tierClass = (!hideAttributes && item.tier) ? `tier-${item.tier.toLowerCase()}` : '';
+  const getTierClass = (tier) => {
+    if (!tier) return '';
+    const t = tier.toLowerCase();
+    if (t === 'lendário' || t === 'legendary') return 'tier-legendary';
+    if (t === 'ouro' || t === 'gold') return 'tier-ouro';
+    if (t === 'prata' || t === 'silver') return 'tier-prata';
+    if (t === 'bronze') return 'tier-bronze';
+    return '';
+  };
+  const tierClass = !hideAttributes ? getTierClass(item.tier) : '';
   const selectedClass = isSelected ? 'selected' : '';
 
   // Helper to determine color of attribute bar
@@ -85,9 +97,9 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
               fontWeight: 800,
               letterSpacing: '1px'
             }}>
-              {type === 'driver1' || type === 'driver2' ? 'Piloto' : 
-               type === 'chassis' ? 'Chassi' : 
-               type === 'engine' ? 'Motor' : 'Chefe de Equipe'}
+              {type === 'driver1' || type === 'driver2' ? (lang === 'pt' ? 'Piloto' : 'Driver') : 
+               type === 'chassis' ? (lang === 'pt' ? 'Chassi' : 'Chassis') : 
+               type === 'engine' ? (lang === 'pt' ? 'Motor' : 'Engine') : (lang === 'pt' ? 'Chefe de Equipe' : 'Team Principal')}
             </span>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.1rem', color: 'var(--text-bright)' }}>
               {item.name}
@@ -97,7 +109,7 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
             {!hideAttributes && (
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.05rem' }}>
                 {item.nationality ? `${item.nationality} • ` : ''}
-                {item.year ? `Ano: ${item.year}` : item.era || ''}
+                {item.year ? (lang === 'pt' ? `Ano: ${item.year}` : `Year: ${item.year}`) : item.era || ''}
               </p>
             )}
           </div>
@@ -153,16 +165,16 @@ export default function DraftCard({ item, type, isSelected, onClick, hideAttribu
               fontWeight: 800, 
               letterSpacing: '1px',
               textTransform: 'uppercase',
-              color: item.tier === 'Lendário' ? 'var(--tier-legendary)' :
-                     item.tier === 'Ouro' ? 'var(--tier-gold)' :
-                     item.tier === 'Prata' ? 'var(--tier-silver)' : 'var(--tier-bronze)'
+              color: (item.tier === 'Lendário' || item.tier === 'Legendary') ? 'var(--tier-legendary)' :
+                     (item.tier === 'Ouro' || item.tier === 'Gold') ? 'var(--tier-gold)' :
+                     (item.tier === 'Prata' || item.tier === 'Silver') ? 'var(--tier-silver)' : 'var(--tier-bronze)'
             }}>
-              {item.tier || 'Comum'}
+              {item.tier || (lang === 'pt' ? 'Comum' : 'Common')}
             </span>
             
             {item.historicalTeams && item.historicalTeams.length > 0 && (
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                Histórico: {item.historicalTeams[0]}
+                {lang === 'pt' ? 'Histórico:' : 'History:'} {item.historicalTeams[0]}
               </span>
             )}
           </div>

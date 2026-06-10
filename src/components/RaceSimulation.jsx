@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { calculateSynergies } from './TeamPreview';
+import { nationalityMap } from '../data/itemTranslations';
 
 // AI competitors configuration
 const AI_GRID = [
@@ -22,6 +23,65 @@ const AI_GRID = [
   { id: 'bottas', name: 'Valtteri Bottas', teamId: 'sauber', teamName: 'Kick Sauber', speed: 83, rain: 76, reliability: 92, strategy: 82 },
   { id: 'zhou', name: 'Zhou Guanyu', teamId: 'sauber', teamName: 'Kick Sauber', speed: 76, rain: 74, reliability: 91, strategy: 78 }
 ];
+
+function translateLogLine(line, lang) {
+  if (!line || lang === 'pt') return line;
+  
+  let translated = line;
+  
+  // Basic replacements
+  translated = translated.replace(/Volta (\d+)/gi, 'Lap $1');
+  translated = translated.replace(/VOLTA (\d+)/gi, 'LAP $1');
+  
+  // Start
+  translated = translated.replace(
+    'Luzes apagadas, os carros partem para a volta 1!',
+    'Lights out, the cars set off for lap 1!'
+  );
+  translated = translated.replace('[SINAL] LARGADA', '[SIGNAL] START');
+
+  // Weather
+  translated = translated.replace('Começa a CHOVER forte no circuito!', 'Heavy RAIN starts falling on the circuit!');
+  translated = translated.replace('A chuva para e o asfalto seca!', 'The rain stops and the asphalt dries!');
+  translated = translated.replace('Nuvens cobrem a pista... COMEÇOU A CHOVER!', 'Clouds cover the track... IT HAS STARTED TO RAIN!');
+  translated = translated.replace('A chuva parou! O trilho seco está aparecendo.', 'The rain has stopped! The dry line is appearing.');
+  translated = translated.replace('[CLIMA: CHUVA]', '[WEATHER: RAIN]');
+  translated = translated.replace('[CLIMA: SECO]', '[WEATHER: DRY]');
+
+  // Incidents
+  translated = translated.replace('está FORA da corrida! (Razão: ', 'is OUT of the race! (Reason: ');
+  translated = translated.replace('rodou e bateu forte! Abandono (DNF).', 'spun and crashed hard! Retirement (DNF).');
+  translated = translated.replace('[INCIDENTE]', '[INCIDENT]');
+  translated = translated.replace('[QUEBRA]', '[ENGINE BLOW]');
+  
+  // SC / VSC
+  translated = translated.replace('DEPLOYED para limpar os destroços de', 'DEPLOYED to clear debris from');
+  translated = translated.replace('Safety Car retornando aos boxes nesta volta. PISTA LIBERADA!', 'Safety Car returning to pits this lap. GREEN FLAG!');
+  translated = translated.replace('Corrida sob regime de', 'Race under');
+  translated = translated.replace('Ultrapassagens proibidas.', 'Overtaking prohibited.');
+  translated = translated.replace('[PISTA LIBERADA]', '[GREEN FLAG]');
+  translated = translated.replace('[REGIME DE SC]', '[SAFETY CAR STATE]');
+  translated = translated.replace('Pista liberada! CORRIDA REINICIADA!', 'Green flag! RACE RESTARTED!');
+
+  // Overtakes / Leadership
+  translated = translated.replace('assume a ponta da corrida na volta', 'takes the lead of the race on lap');
+  translated = translated.replace('subiu para P', 'moved up to P');
+  translated = translated.replace('ultrapassou', 'overtook');
+  translated = translated.replace('furo de pneu', 'puncture');
+  translated = translated.replace('superaquecimento', 'overheating');
+  translated = translated.replace('[LIDERANÇA]', '[LEADERSHIP]');
+  translated = translated.replace('[ULTRAPASSAGEM]', '[OVERTAKE]');
+  translated = translated.replace('[RÁDIO: SC]', '[RADIO: SC]');
+  translated = translated.replace('[RÁDIO: BOX]', '[RADIO: BOX]');
+
+  // Stopwatch / Summary
+  translated = translated.replace('Concluída: Liderança por', 'Completed: Led by');
+  translated = translated.replace('em P', 'in P');
+  translated = translated.replace('desgaste', 'wear');
+  translated = translated.replace('[CRONÔMETRO]', '[LAP TIMING]');
+  
+  return translated;
+}
 
 export default function RaceSimulation({ 
   team, 
@@ -1077,11 +1137,11 @@ export default function RaceSimulation({
         }}>
           <div>
             <h2 className="text-numeric" style={{ fontSize: '1.4rem', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span>GP DO {track.country.toUpperCase()}</span>
+              <span>{lang === 'pt' ? `GP DO ${track.country.toUpperCase()}` : `${(nationalityMap[track.country] || track.country).toUpperCase()} GP`}</span>
               {weather === 'chuva' ? (
-                <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>CHUVA</span>
+                <span className="pulse-effect" style={{ fontSize: '0.9rem', background: 'var(--blue-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>{lang === 'pt' ? 'CHUVA' : 'RAIN'}</span>
               ) : (
-                <span style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>SECO</span>
+                <span style={{ fontSize: '0.9rem', background: 'var(--yellow-neon)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>{lang === 'pt' ? 'SECO' : 'DRY'}</span>
               )}
 
               {safetyCarStatus === 'sc' && (
@@ -1092,7 +1152,7 @@ export default function RaceSimulation({
               )}
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.1rem' }}>
-              Circuito: <strong style={{ color: 'var(--text-bright)' }}>{track.name}</strong> • Volta <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>{currentLap}</strong> de {totalLaps}
+              {lang === 'pt' ? 'Circuito:' : 'Circuit:'} <strong style={{ color: 'var(--text-bright)' }}>{track.name}</strong> • {lang === 'pt' ? 'Volta' : 'Lap'} <strong className="text-numeric" style={{ color: 'var(--f1-red)', fontSize: '0.95rem' }}>{currentLap}</strong> {lang === 'pt' ? 'de' : 'of'} {totalLaps}
             </p>
           </div>
 
@@ -1353,24 +1413,25 @@ export default function RaceSimulation({
               }}
             >
               {log.map((line, idx) => {
+                const translatedLine = translateLogLine(line, lang);
                 let color = '#d2d6dd';
                 let weight = 'normal';
 
-                if (line.includes('[REGIME DE SC]') || line.includes('[RÁDIO: SC]') || line.includes('VSC') || line.includes('SAFETY CAR')) {
-                  color = 'var(--yellow-neon)';
+                if (translatedLine.includes('[REGIME DE SC]') || translatedLine.includes('[SAFETY CAR STATE]') || translatedLine.includes('VSC') || translatedLine.includes('SAFETY CAR')) {
+                  color = '#ffca00';
                   weight = 'bold';
-                } else if (line.includes('[CLIMA: CHUVA]') || line.includes('CHOVER')) {
-                  color = 'var(--blue-neon)';
+                } else if (translatedLine.includes('[CLIMA: CHUVA]') || translatedLine.includes('[WEATHER: RAIN]') || translatedLine.includes('RAIN') || translatedLine.includes('CHOVER')) {
+                  color = '#00f0ff';
                   weight = 'bold';
-                } else if (line.includes('[INCIDENTE]') || line.includes('[QUEBRA]') || line.includes('Abandono') || line.includes('FORA') || line.includes('DNF')) {
+                } else if (translatedLine.includes('[INCIDENT]') || translatedLine.includes('[INCIDENTE]') || translatedLine.includes('[ENGINE BLOW]') || translatedLine.includes('[QUEBRA]') || translatedLine.includes('Abandono') || translatedLine.includes('Retirement') || translatedLine.includes('OUT') || translatedLine.includes('DNF')) {
                   color = 'var(--f1-red)';
                   weight = 'bold';
-                } else if (line.includes('[BOX]') || line.includes('[RÁDIO: BOX]') || line.includes('Pitstop') || line.includes('BOX')) {
-                  color = 'var(--green-neon)';
-                } else if (line.includes('[CRONÔMETRO]')) {
-                  color = 'var(--text-bright)';
+                } else if (translatedLine.includes('[BOX]') || translatedLine.includes('[RADIO: BOX]') || translatedLine.includes('Pitstop') || translatedLine.includes('BOX')) {
+                  color = '#00ff87';
+                } else if (translatedLine.includes('[CRONÔMETRO]') || translatedLine.includes('[LAP TIMING]')) {
+                  color = '#ffffff';
                   weight = 'bold';
-                } else if (line.includes('[AVISO]') || line.includes('SUPERAQUECENDO')) {
+                } else if (translatedLine.includes('[AVISO]') || translatedLine.includes('[WARNING]') || translatedLine.includes('OVERHEATING') || translatedLine.includes('SUPERAQUECENDO')) {
                   color = '#ff6c00';
                   weight = 'bold';
                 }
@@ -1378,7 +1439,7 @@ export default function RaceSimulation({
                 return (
                   <div key={idx} style={{ color, fontWeight: weight, display: 'flex', gap: '0.4rem', lineHeight: 1.25 }}>
                     <span style={{ color: 'rgba(255,255,255,0.15)' }}>&gt;</span>
-                    <span>{line}</span>
+                    <span>{translatedLine}</span>
                   </div>
                 );
               })}
@@ -1395,7 +1456,13 @@ export default function RaceSimulation({
               textAlign: 'center',
               lineHeight: '1.3'
             }}>
-              <span>Pressione <strong>Espaço</strong> ou <strong>Enter</strong> na pista seca para simular o próximo giro de cronômetro.</span>
+              <span>
+                {lang === 'pt' ? (
+                  <>Pressione <strong>Espaço</strong> ou <strong>Enter</strong> na pista seca para simular o próximo giro de cronômetro.</>
+                ) : (
+                  <>Press <strong>Space</strong> or <strong>Enter</strong> on dry track to simulate the next lap timer.</>
+                )}
+              </span>
             </div>
           </div>
 

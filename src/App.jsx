@@ -21,13 +21,14 @@ export default function App() {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'pt');
   const [activeAiGrid, setActiveAiGrid] = useState([]);
   const [introPhase, setIntroPhase] = useState(() => {
-    return localStorage.getItem('visited_before') ? 'none' : 'video';
+    return localStorage.getItem('visited_before') ? 'none' : 'pre-video';
   });
   const videoRef = useRef(null);
 
   // Resilient autoplay sound check
   useEffect(() => {
     if (introPhase === 'video' && videoRef.current) {
+      videoRef.current.muted = false;
       videoRef.current.play().catch(err => {
         console.log("Autoplay with sound blocked, trying muted...", err);
         if (videoRef.current) {
@@ -402,24 +403,86 @@ export default function App() {
   };
 
   // Phase 1: Video Intro (CRT retro TV)
-  if (introPhase === 'video' || introPhase === 'shutting-down') {
+  if (introPhase === 'pre-video' || introPhase === 'video' || introPhase === 'shutting-down') {
     return (
       <div className="crt-wrapper">
-        <button className="crt-skip-btn" onClick={handleSkipIntro}>
-          {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
-        </button>
+        {introPhase !== 'pre-video' && (
+          <button className="crt-skip-btn" onClick={handleSkipIntro}>
+            {lang === 'pt' ? 'Pular Intro' : 'Skip Intro'}
+          </button>
+        )}
         
         <div className="crt-case">
           <div className="crt-screen-container">
             <div className={`crt-screen crt-flicker ${introPhase === 'shutting-down' ? 'turning-off' : ''}`}>
-              <video 
-                ref={videoRef}
-                src="/Video.mp4" 
-                playsInline 
-                autoPlay 
-                onEnded={handleSkipIntro}
-                className="crt-video"
-              />
+              {introPhase === 'pre-video' ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  color: 'var(--green-neon)',
+                  fontFamily: 'var(--font-f1-header)',
+                  textShadow: '0 0 8px var(--green-neon)',
+                  textAlign: 'center',
+                  padding: '2rem',
+                  gap: '2.2rem',
+                  background: '#040508'
+                }}>
+                  <div className="pulse-effect" style={{ fontSize: '1.2rem', letterSpacing: '3px', fontWeight: 'bold' }}>
+                    [ SYSTEM STANDBY ]
+                  </div>
+                  
+                  {/* Glowing red retro dial / power key */}
+                  <button 
+                    onClick={() => setIntroPhase('video')}
+                    style={{
+                      width: '110px',
+                      height: '110px',
+                      borderRadius: '50%',
+                      background: '#151515',
+                      border: '6px solid var(--f1-red)',
+                      boxShadow: '0 0 35px var(--f1-red-glow), inset 0 0 15px rgba(225, 6, 0, 0.3)',
+                      color: 'var(--f1-red)',
+                      fontSize: '3rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'var(--transition-smooth)',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 0 50px rgba(225, 6, 0, 0.9), inset 0 0 20px rgba(225, 6, 0, 0.5)';
+                      e.currentTarget.style.borderColor = '#ff251d';
+                      e.currentTarget.style.color = '#ff251d';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 0 35px var(--f1-red-glow), inset 0 0 15px rgba(225, 6, 0, 0.3)';
+                      e.currentTarget.style.borderColor = 'var(--f1-red)';
+                      e.currentTarget.style.color = 'var(--f1-red)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    ⏻
+                  </button>
+
+                  <div style={{ fontSize: '0.8rem', letterSpacing: '1px', opacity: 0.8, fontFamily: 'var(--font-f1-body)', color: 'var(--text-muted)' }}>
+                    {lang === 'pt' ? 'LIGAR TRANSMISSÃO COM SOM' : 'TURN POWER ON (WITH AUDIO)'}
+                  </div>
+                </div>
+              ) : (
+                <video 
+                  ref={videoRef}
+                  src="/Video.mp4" 
+                  playsInline 
+                  autoPlay 
+                  onEnded={handleSkipIntro}
+                  className="crt-video"
+                />
+              )}
             </div>
           </div>
         </div>

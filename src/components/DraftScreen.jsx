@@ -174,6 +174,7 @@ export default function DraftScreen({ gameMode, onDraftComplete, t, lang }) {
                   isSelected={selectedItem?.id === item.id}
                   onClick={() => handleSelect(item)}
                   hideAttributes={gameMode === 'almanac'}
+                  lang={lang}
                 />
               ))}
             </div>

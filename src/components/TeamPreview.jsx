@@ -1,4 +1,5 @@
 import React from 'react';
+import { getLocalItem } from '../data/itemTranslations';
 
 // Synergy calculation helper
 export function calculateSynergies(team, lang = 'pt') {
@@ -132,9 +133,9 @@ export default function TeamPreview({ team, t, lang }) {
   const { driver1, driver2, chassis, engine, principal } = team;
   const { activeSynergies } = calculateSynergies(team, lang);
 
-  const renderSlot = (slotKey, item) => {
+  const renderSlot = (slotKey, rawItem) => {
     const title = getSlotLabel(slotKey);
-    if (!item) {
+    if (!rawItem) {
       return (
         <div style={{
           border: '1px dashed var(--border-color-default)',
@@ -154,6 +155,8 @@ export default function TeamPreview({ team, t, lang }) {
         </div>
       );
     }
+
+    const item = getLocalItem(rawItem, lang);
 
     return (
       <div style={{
